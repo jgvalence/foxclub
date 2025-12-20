@@ -3,13 +3,12 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["iad1"],
-  "crons": [
-    {
-      "path": "/api/cron/example",
-      "schedule": "0 0 * * *"
+  "regions": ["cdg1"],
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
     }
-  ],
+  },
   "env": {
     "SKIP_ENV_VALIDATION": "1"
   }

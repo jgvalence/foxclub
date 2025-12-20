@@ -1,11 +1,11 @@
 {
-  "name": "base-nextjs",
+  "name": "foxclub",
   "version": "1.0.0",
   "private": true,
-  "description": "Base Next.js project template with best practices for professional applications",
+  "description": "Fox Club - Platform de formulaires avec gestion des utilisateurs et questions",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
