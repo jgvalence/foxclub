@@ -35,6 +35,7 @@ Guide complet pour déployer Fox Club avec base de données PostgreSQL et intég
    - PostgreSQL version : 15+
 
 3. **Récupérer les URLs de connexion** :
+
    ```
    DATABASE_URL (pooled) : postgresql://user:pass@hostname/dbname?sslmode=require
    DIRECT_URL (non-pooled) : postgresql://user:pass@hostname/dbname?sslmode=require
@@ -62,12 +63,14 @@ vercel login
 ### 2. Créer le projet sur Vercel
 
 **Via CLI :**
+
 ```bash
 cd /home/user/foxclub
 vercel
 ```
 
 **Via l'interface web :**
+
 1. Aller sur [vercel.com/new](https://vercel.com/new)
 2. Importer votre repository GitHub `jgvalence/foxclub`
 3. Configurer le projet :
@@ -81,6 +84,7 @@ vercel
 Dans **Project Settings → Environment Variables**, ajouter :
 
 #### Production
+
 ```env
 # Database (Neon)
 DATABASE_URL=postgresql://user:pass@hostname/foxclub?sslmode=require
@@ -95,6 +99,7 @@ NODE_ENV=production
 ```
 
 #### Preview (optionnel - pour les branches de dev)
+
 ```env
 DATABASE_URL=postgresql://...preview-db...
 DIRECT_URL=postgresql://...preview-db...
@@ -104,6 +109,7 @@ NODE_ENV=production
 ```
 
 **⚠️ Important** : Générer un secret sécurisé pour `NEXTAUTH_SECRET` :
+
 ```bash
 openssl rand -base64 32
 ```
@@ -128,6 +134,7 @@ Le fichier `package.json` doit contenir :
 ```
 
 **Explication** :
+
 - `prisma generate` : Génère le client Prisma
 - `prisma migrate deploy` : Applique les migrations en production
 - `next build` : Build Next.js
@@ -225,8 +232,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -273,31 +280,34 @@ npx prisma db seed
 Créer un fichier `scripts/setup-production.ts` :
 
 ```typescript
-import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcryptjs';
+import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function setupProduction() {
-  console.log('🦊 Setting up production database...');
+  console.log("🦊 Setting up production database...");
 
   // Créer l'admin principal
-  const adminPassword = await hash(process.env.ADMIN_PASSWORD || 'CHANGE_ME', 12);
+  const adminPassword = await hash(
+    process.env.ADMIN_PASSWORD || "CHANGE_ME",
+    12
+  );
 
   await prisma.user.upsert({
-    where: { email: process.env.ADMIN_EMAIL || 'admin@foxclub.com' },
+    where: { email: process.env.ADMIN_EMAIL || "admin@foxclub.com" },
     update: {},
     create: {
-      email: process.env.ADMIN_EMAIL || 'admin@foxclub.com',
-      name: 'Admin',
+      email: process.env.ADMIN_EMAIL || "admin@foxclub.com",
+      name: "Admin",
       password: adminPassword,
-      role: 'ADMIN',
+      role: "ADMIN",
       approved: true,
       emailVerified: new Date(),
     },
   });
 
-  console.log('✅ Production setup complete!');
+  console.log("✅ Production setup complete!");
 }
 
 setupProduction()
@@ -306,6 +316,7 @@ setupProduction()
 ```
 
 Puis l'exécuter une fois :
+
 ```bash
 npx tsx scripts/setup-production.ts
 ```
@@ -347,6 +358,7 @@ Avant de déployer en production :
 **Dashboard** → **Deployments** → Cliquer sur un déploiement → **Function Logs**
 
 Voir :
+
 - Erreurs runtime
 - Logs API routes
 - Performance
@@ -354,6 +366,7 @@ Voir :
 ### Monitoring base de données
 
 **Neon Dashboard** :
+
 - Connexions actives
 - Requêtes lentes
 - Utilisation du stockage
@@ -389,6 +402,7 @@ vercel rollback
 ### Erreur : "Prisma Client not found"
 
 **Solution** : Ajouter `postinstall` script :
+
 ```json
 "scripts": {
   "postinstall": "prisma generate"
@@ -398,6 +412,7 @@ vercel rollback
 ### Erreur : "Can't reach database"
 
 **Solutions** :
+
 1. Vérifier que `DATABASE_URL` est correct dans Vercel
 2. Vérifier que le SSL est activé (`?sslmode=require`)
 3. Tester la connexion localement :
@@ -408,6 +423,7 @@ vercel rollback
 ### Build timeout
 
 **Solution** : Augmenter le timeout dans `vercel.json` :
+
 ```json
 {
   "functions": {
@@ -421,6 +437,7 @@ vercel rollback
 ### Migrations ne s'appliquent pas
 
 **Solution** : Exécuter manuellement :
+
 ```bash
 vercel env pull
 npx prisma migrate deploy
@@ -453,6 +470,7 @@ npx prisma migrate deploy
 npx prisma db seed
 
 # 7. Tester l'app !
+test change deploy
 ```
 
 Votre Fox Club est maintenant **live** ! 🦊🎉

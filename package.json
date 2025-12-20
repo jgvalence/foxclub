@@ -21,8 +21,7 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate",
-    "prepare": "husky install"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^7.2.0",
