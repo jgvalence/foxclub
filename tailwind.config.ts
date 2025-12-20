@@ -11,18 +11,25 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        // Fox orange theme - warm, vibrant colors inspired by fox fur
         primary: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          400: "#38bdf8",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-          800: "#075985",
-          900: "#0c4a6e",
-          950: "#082f49",
+          50: "#fff5f0",
+          100: "#ffe8db",
+          200: "#ffd1b8",
+          300: "#ffb085",
+          400: "#ff8f52",
+          500: "#ff6b35", // Main fox orange
+          600: "#e65a2b",
+          700: "#cc4921",
+          800: "#b33a17",
+          900: "#992d0f",
+          950: "#7a2409",
+        },
+        // Secondary gray tones for balance
+        fox: {
+          orange: "#ff6b35",
+          cream: "#fff5f0",
+          brown: "#7a2409",
         },
       },
       fontFamily: {

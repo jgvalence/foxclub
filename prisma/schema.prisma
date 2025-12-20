@@ -29,15 +29,19 @@ model User {
   image         String?
   password      String? // Nullable for OAuth users
   role          UserRole  @default(USER)
+  approved      Boolean   @default(false) // User must be approved by admin to fill forms
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  accounts Account[]
-  sessions Session[]
+  accounts   Account[]
+  sessions   Session[]
+  userForm   UserForm?
+  adminNotes AdminNote[]
 
   @@index([email])
+  @@index([approved])
   @@map("users")
 }
 
@@ -84,92 +88,116 @@ model VerificationToken {
 }
 
 // ==============================================================================
-// EXAMPLE: E-COMMERCE MODELS (Optional - Remove if not needed)
+// FOX CLUB - QUESTION & FORM MODELS
 // ==============================================================================
 
-enum OrderStatus {
-  PENDING
-  PAID
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
+enum QuestionType {
+  TYPE_1 // Score (1-4), Top, Bot, Talk, Notes
+  TYPE_2 // Score (1-4), Talk, Include, Notes
 }
 
-model Product {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?  @db.Text
-  price       Int // In cents
-  currency    String   @default("USD")
-  stock       Int      @default(0)
-  images      String[] // Array of image URLs
-  isActive    Boolean  @default(true)
+// Question families group questions by category
+model QuestionFamily {
+  id    String       @id @default(cuid())
+  label String // e.g., "Bougies / cire chaude", "Massages"
+  type  QuestionType
+  order Int          @default(0) // Display order
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  orderItems OrderItem[]
+  questions Question[]
 
-  @@index([slug])
-  @@index([isActive])
-  @@map("products")
+  @@index([order])
+  @@map("question_families")
 }
 
-model Order {
-  id              String      @id @default(cuid())
-  orderNumber     String      @unique
-  userId          String?
-  email           String
-  status          OrderStatus @default(PENDING)
-  total           Int // In cents
-  currency        String      @default("USD")
-  stripePaymentId String?     @unique
-
-  // Shipping info (snapshot at order time)
-  shippingName    String?
-  shippingAddress String?
-  shippingCity    String?
-  shippingZip     String?
-  shippingCountry String?
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  paidAt    DateTime?
-
-  // Relations
-  items OrderItem[]
-
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-  @@map("orders")
-}
-
-// Snapshot pattern: preserve product details at order time
-model OrderItem {
-  id String @id @default(cuid())
-
-  orderId   String
-  productId String
-
-  // Snapshot of product data at order time
-  productName  String
-  productPrice Int // In cents
-  quantity     Int
+// Individual questions within a family
+model Question {
+  id               String @id @default(cuid())
+  questionFamilyId String
+  text             String @db.Text // Question text in French
+  order            Int    @default(0) // Display order within family
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  questionFamily QuestionFamily @relation(fields: [questionFamilyId], references: [id], onDelete: Cascade)
+  answers        FormAnswer[]
 
-  @@index([orderId])
-  @@index([productId])
-  @@map("order_items")
+  @@index([questionFamilyId])
+  @@index([order])
+  @@map("questions")
+}
+
+// One form per user - contains all their answers
+model UserForm {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  submitted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers FormAnswer[]
+
+  @@index([userId])
+  @@index([submitted])
+  @@map("user_forms")
+}
+
+// Individual answer to a question - structure varies by question type
+model FormAnswer {
+  id         String @id @default(cuid())
+  formId     String
+  questionId String
+
+  // Common fields (both types)
+  score Int // 1-4 scale
+  notes String? @db.Text
+
+  // TYPE_1 specific fields
+  top  Boolean? // Only for TYPE_1
+  bot  Boolean? // Only for TYPE_1
+  talk Boolean? // Both types
+
+  // TYPE_2 specific fields
+  include Boolean? // Only for TYPE_2
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  form     UserForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([formId, questionId]) // One answer per question per form
+  @@index([formId])
+  @@index([questionId])
+  @@map("form_answers")
+}
+
+// Admin notes on user profiles (private to admins)
+model AdminNote {
+  id      String  @id @default(cuid())
+  userId  String
+  adminId String // ID of admin who created the note
+  content String  @db.Text
+  pinned  Boolean @default(false) // Pin important notes to top
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([adminId])
+  @@index([pinned])
+  @@map("admin_notes")
 }
 
 // ==============================================================================
@@ -184,6 +212,10 @@ enum AuditAction {
   LOGOUT
   PAYMENT
   REFUND
+  USER_APPROVED
+  USER_REJECTED
+  FORM_SUBMITTED
+  ADMIN_NOTE_ADDED
 }
 
 model AuditLog {
