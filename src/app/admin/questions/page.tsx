@@ -161,7 +161,7 @@ export default function QuestionsPage() {
       } else {
         createMutation.mutate(values);
       }
-    } catch (error) {
+    } catch (_error) {
       // Validation error
     }
   };

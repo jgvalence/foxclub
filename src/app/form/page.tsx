@@ -1,16 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tantml:invoke name="queryClient"];
-import {
-  Card,
-  Button,
-  message,
-  Alert,
-  Modal,
-  Spin,
-  Collapse,
-} from "antd";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Card, Button, message, Alert, Modal, Spin, Collapse } from "antd";
 import { SaveOutlined, SendOutlined } from "@ant-design/icons";
 import { fr } from "@/lib/i18n";
 import { ScoreSelector } from "@/components/ui/score-selector";
@@ -139,10 +131,11 @@ export default function FormPage() {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: {
-        ...prev[questionId],
         questionId,
+        score: prev[questionId]?.score ?? 1,
+        ...prev[questionId],
         [field]: value,
-      },
+      } as FormAnswer,
     }));
   };
 
@@ -192,9 +185,7 @@ export default function FormPage() {
   return (
     <div className="mx-auto max-w-4xl p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {fr.form.title}
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900">{fr.form.title}</h1>
         {isSubmitted && (
           <Alert
             message="Formulaire soumis"
@@ -228,14 +219,11 @@ export default function FormPage() {
           >
             <div className="space-y-6">
               {family.questions.map((question) => {
-                const answer = answers[question.id] || {};
+                const answer: Partial<FormAnswer> =
+                  answers[question.id] || { score: 1 };
 
                 return (
-                  <Card
-                    key={question.id}
-                    className="shadow-sm"
-                    size="small"
-                  >
+                  <Card key={question.id} className="shadow-sm" size="small">
                     <div className="mb-4 font-medium text-gray-900">
                       {question.text}
                     </div>
@@ -243,7 +231,7 @@ export default function FormPage() {
                     {/* Score Selector */}
                     <div className="mb-4">
                       <ScoreSelector
-                        value={answer.score}
+                        value={answer.score ?? 1}
                         onChange={(value) =>
                           handleAnswerChange(question.id, "score", value)
                         }

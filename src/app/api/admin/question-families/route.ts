@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleApiError } from "@/lib/errors/handlers";
 import { requireAdmin } from "@/lib/auth/helpers";
 import { prisma } from "@/lib/db/prisma";
-import {
-  createQuestionFamilySchema,
-  questionFamiliesFilterSchema,
-} from "@/lib/validations/fox-club";
+import { createQuestionFamilySchema } from "@/lib/validations/fox-club";
 
 /**
  * GET /api/admin/question-families

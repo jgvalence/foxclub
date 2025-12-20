@@ -12,7 +12,6 @@ import {
   Space,
   message,
   Popconfirm,
-  Checkbox,
   Spin,
 } from "antd";
 import {
@@ -24,7 +23,7 @@ import {
 import { useParams } from "next/navigation";
 import { fr } from "@/lib/i18n";
 import { formatDistanceToNow } from "date-fns";
-import { frLocale } from "date-fns/locale/fr";
+import { fr as frLocale } from "date-fns/locale/fr";
 
 const { TextArea } = Input;
 

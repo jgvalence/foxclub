@@ -9,9 +9,9 @@ import {
 import { NotFoundError } from "@/lib/errors/types";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -19,12 +19,13 @@ interface RouteParams {
  * Get a single user with their form and admin notes
  * Admin only
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         userForm: {
           include: {
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Don't send password hash
-    const { password, ...userWithoutPassword } = user;
+    const { password: _password, ...userWithoutPassword } = user;
 
     return NextResponse.json(userWithoutPassword);
   } catch (error) {
@@ -72,10 +73,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     await requireAdmin();
 
     const body = await request.json();
+    const { id } = await params;
 
     // Check if user exists
     const exists = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exists) {
@@ -83,7 +85,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     // Validate based on what's being updated
-    let data: any = {};
+    const data: any = {};
 
     if ("approved" in body) {
       const validated = updateUserApprovalSchema.parse(body);
@@ -96,7 +98,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const updated = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data,
       select: {
         id: true,
@@ -120,13 +122,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * Delete a user
  * Admin only
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     // Check if user exists
     const exists = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exists) {
@@ -134,7 +137,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

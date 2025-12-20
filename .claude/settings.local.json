@@ -5,7 +5,14 @@
       "Bash(git merge:*)",
       "Bash(git push:*)",
       "Bash(npx prisma validate:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx next build)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(npx prisma generate:*)"
     ]
   }
 }

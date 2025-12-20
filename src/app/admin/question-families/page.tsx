@@ -121,7 +121,7 @@ export default function QuestionFamiliesPage() {
       } else {
         createMutation.mutate(values);
       }
-    } catch (error) {
+    } catch (_error) {
       // Validation error
     }
   };

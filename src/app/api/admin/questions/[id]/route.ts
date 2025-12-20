@@ -6,9 +6,9 @@ import { updateQuestionSchema } from "@/lib/validations/fox-club";
 import { NotFoundError } from "@/lib/errors/types";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -16,12 +16,13 @@ interface RouteParams {
  * Get a single question by ID
  * Admin only
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     const question = await prisma.question.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         questionFamily: true,
         _count: {
@@ -51,10 +52,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const body = await request.json();
     const validated = updateQuestionSchema.parse(body);
+    const { id } = await params;
 
     // Check if question exists
     const exists = await prisma.question.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exists) {
@@ -62,7 +64,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const updated = await prisma.question.update({
-      where: { id: params.id },
+      where: { id },
       data: validated,
       include: {
         questionFamily: {
@@ -86,13 +88,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * Delete a question
  * Admin only
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     // Check if question exists
     const exists = await prisma.question.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exists) {
@@ -100,7 +103,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     await prisma.question.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

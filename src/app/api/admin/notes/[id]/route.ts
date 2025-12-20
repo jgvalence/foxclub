@@ -6,9 +6,9 @@ import { updateAdminNoteSchema } from "@/lib/validations/fox-club";
 import { NotFoundError } from "@/lib/errors/types";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -22,10 +22,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const body = await request.json();
     const validated = updateAdminNoteSchema.parse(body);
+    const { id } = await params;
 
     // Check if note exists
     const exists = await prisma.adminNote.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exists) {
@@ -33,7 +34,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const updated = await prisma.adminNote.update({
-      where: { id: params.id },
+      where: { id },
       data: validated,
     });
 
@@ -48,13 +49,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * Delete an admin note
  * Admin only
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     // Check if note exists
     const exists = await prisma.adminNote.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exists) {
@@ -62,7 +64,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     await prisma.adminNote.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

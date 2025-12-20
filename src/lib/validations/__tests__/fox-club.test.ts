@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   createQuestionFamilySchema,
-  updateQuestionFamilySchema,
   createQuestionSchema,
   type1AnswerSchema,
   type2AnswerSchema,

@@ -10,7 +10,7 @@ import { ForbiddenError } from "@/lib/errors/types";
  * Get current user's form with all questions and answers
  * Requires authenticated and approved user
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const user = await requireAuth();
 

@@ -23,18 +23,18 @@ export default function HomePage() {
             production-ready applications.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Button size="lg" asChild>
-              <Link href="/dashboard">Get Started</Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+            <Link href="/dashboard">
+              <Button size="lg">Get Started</Button>
+            </Link>
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="lg" variant="outline">
                 View on GitHub
-              </a>
-            </Button>
+              </Button>
+            </a>
           </div>
         </div>
 

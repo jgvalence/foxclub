@@ -6,9 +6,9 @@ import { updateQuestionFamilySchema } from "@/lib/validations/fox-club";
 import { NotFoundError } from "@/lib/errors/types";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -16,12 +16,13 @@ interface RouteParams {
  * Get a single question family by ID
  * Admin only
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     const family = await prisma.questionFamily.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         questions: {
           orderBy: { order: "asc" },
@@ -53,10 +54,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const body = await request.json();
     const validated = updateQuestionFamilySchema.parse(body);
+    const { id } = await params;
 
     // Check if family exists
     const exists = await prisma.questionFamily.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exists) {
@@ -64,7 +66,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const updated = await prisma.questionFamily.update({
-      where: { id: params.id },
+      where: { id },
       data: validated,
     });
 
@@ -79,13 +81,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
  * Delete a question family and all its questions
  * Admin only
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     // Check if family exists
     const exists = await prisma.questionFamily.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exists) {
@@ -94,7 +97,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     // Delete will cascade to questions due to Prisma schema
     await prisma.questionFamily.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
