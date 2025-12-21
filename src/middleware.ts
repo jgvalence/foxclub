@@ -31,7 +31,12 @@ export default auth((req) => {
   }
 
   // Protected app routes
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) {
+  if (
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/form") ||
+    pathname.startsWith("/account")
+  ) {
     if (!isAuthenticated) {
       const signInUrl = new URL("/auth/signin", req.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
