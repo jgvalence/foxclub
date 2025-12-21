@@ -156,10 +156,17 @@ export default function QuestionsPage() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      const payload = {
+        ...values,
+        order:
+          values.order === undefined || values.order === null
+            ? undefined
+            : Number(values.order),
+      };
       if (editingQuestion) {
-        updateMutation.mutate({ id: editingQuestion.id, values });
+        updateMutation.mutate({ id: editingQuestion.id, values: payload });
       } else {
-        createMutation.mutate(values);
+        createMutation.mutate(payload);
       }
     } catch (_error) {
       // Validation error
