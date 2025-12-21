@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, Button, message, Alert, Modal, Spin, Collapse } from "antd";
+import { Card, Button, message, Alert, Modal, Spin } from "antd";
 import { SaveOutlined, SendOutlined } from "@ant-design/icons";
 import { fr } from "@/lib/i18n";
 import { ScoreSelector } from "@/components/ui/score-selector";
@@ -42,16 +42,10 @@ interface FormData {
   questionFamilies: QuestionFamily[];
 }
 
-/**
- * User Form Page
- * Main form for users to fill out their preferences
- * Dynamically renders questions based on family type
- */
 export default function FormPage() {
   const [answers, setAnswers] = useState<Record<string, FormAnswer>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch form data
   const { data, isLoading, error } = useQuery<FormData>({
     queryKey: ["user-form"],
     queryFn: async () => {
@@ -65,7 +59,6 @@ export default function FormPage() {
     retry: 1,
   });
 
-  // Initialize answers from existing form data
   useEffect(() => {
     if (data?.form?.answers) {
       const existingAnswers: Record<string, FormAnswer> = {};
@@ -84,7 +77,6 @@ export default function FormPage() {
     }
   }, [data]);
 
-  // Save form mutation
   const saveMutation = useMutation({
     mutationFn: async (submit: boolean) => {
       const answersArray = Object.values(answers).map((answer) => ({
@@ -170,7 +162,7 @@ export default function FormPage() {
       <div className="p-6">
         <Alert
           message={fr.form.notApproved}
-          description="Veuillez contacter un administrateur pour obtenir l'accÃ¨s."
+          description="Veuillez contacter un administrateur pour obtenir l'accès."
           type="warning"
           showIcon
         />
@@ -183,13 +175,31 @@ export default function FormPage() {
   const isSubmitted = data.form.submitted;
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
+    <div className="mx-auto max-w-5xl p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{fr.form.title}</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Sélectionnez un score et cochez les colonnes correspondantes. Les
+          légendes indiquent le niveau d’appétence.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-red-700">
+            ?? Fantasme
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-green-700">
+            ?? Ok de le pratiquer
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+            ?? Curieux / doucement
+          </span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-gray-700">
+            ? Non / Limite
+          </span>
+        </div>
         {isSubmitted && (
           <Alert
             message="Formulaire soumis"
-            description="Votre formulaire a Ã©tÃ© soumis et ne peut plus Ãªtre modifiÃ©."
+            description="Votre formulaire a été soumis et ne peut plus être modifié."
             type="success"
             showIcon
             className="mt-4"
@@ -197,144 +207,164 @@ export default function FormPage() {
         )}
       </div>
 
-      {/* Questions by Family */}
-      <Collapse
-        accordion
-        defaultActiveKey={data.questionFamilies[0]?.id}
-        className="mb-6"
-      >
+      <div className="space-y-6">
         {data.questionFamilies.map((family) => (
-          <Collapse.Panel
-            key={family.id}
-            header={
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-semibold">{family.label}</span>
-                <span className="text-sm text-gray-500">
+          <Card key={family.id} className="shadow-sm">
+            <div className="flex flex-col gap-2 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {family.label}
+                </h2>
+                <p className="text-sm text-gray-500">
                   {family.type === "TYPE_1"
                     ? fr.questionFamilies.type1
                     : fr.questionFamilies.type2}
-                </span>
+                </p>
               </div>
-            }
-          >
-            <div className="space-y-6">
-              {family.questions.map((question) => {
-                const answer: Partial<FormAnswer> =
-                  answers[question.id] || { score: 1 };
-
-                return (
-                  <Card key={question.id} className="shadow-sm" size="small">
-                    <div className="mb-4 font-medium text-gray-900">
-                      {question.text}
-                    </div>
-
-                    {/* Score Selector */}
-                    <div className="mb-4">
-                      <ScoreSelector
-                        value={answer.score ?? 1}
-                        onChange={(value) =>
-                          handleAnswerChange(question.id, "score", value)
-                        }
-                        disabled={isSubmitted}
-                      />
-                    </div>
-
-                    {/* Type-specific fields */}
-                    <div className="mb-4 flex flex-wrap gap-4">
-                      {family.type === "TYPE_1" && (
-                        <>
-                          <Checkbox
-                            label={fr.form.top}
-                            checked={answer.top || false}
-                            onChange={(e) =>
-                              handleAnswerChange(
-                                question.id,
-                                "top",
-                                e.target.checked
-                              )
-                            }
-                            disabled={isSubmitted}
-                          />
-                          <Checkbox
-                            label={fr.form.bot}
-                            checked={answer.bot || false}
-                            onChange={(e) =>
-                              handleAnswerChange(
-                                question.id,
-                                "bot",
-                                e.target.checked
-                              )
-                            }
-                            disabled={isSubmitted}
-                          />
-                          <Checkbox
-                            label={fr.form.talk}
-                            checked={answer.talk || false}
-                            onChange={(e) =>
-                              handleAnswerChange(
-                                question.id,
-                                "talk",
-                                e.target.checked
-                              )
-                            }
-                            disabled={isSubmitted}
-                          />
-                        </>
-                      )}
-
-                      {family.type === "TYPE_2" && (
-                        <>
-                          <Checkbox
-                            label={fr.form.talk}
-                            checked={answer.talk || false}
-                            onChange={(e) =>
-                              handleAnswerChange(
-                                question.id,
-                                "talk",
-                                e.target.checked
-                              )
-                            }
-                            disabled={isSubmitted}
-                          />
-                          <Checkbox
-                            label={fr.form.include}
-                            checked={answer.include || false}
-                            onChange={(e) =>
-                              handleAnswerChange(
-                                question.id,
-                                "include",
-                                e.target.checked
-                              )
-                            }
-                            disabled={isSubmitted}
-                          />
-                        </>
-                      )}
-                    </div>
-
-                    {/* Notes */}
-                    <Textarea
-                      label={fr.form.notes}
-                      value={answer.notes || ""}
-                      onChange={(e) =>
-                        handleAnswerChange(question.id, "notes", e.target.value)
-                      }
-                      placeholder="Commentaires ou prÃ©cisions..."
-                      maxLength={2000}
-                      showCount
-                      disabled={isSubmitted}
-                    />
-                  </Card>
-                );
-              })}
             </div>
-          </Collapse.Panel>
-        ))}
-      </Collapse>
 
-      {/* Actions */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm text-gray-700">
+                <thead className="bg-orange-50 text-xs uppercase text-gray-700">
+                  <tr>
+                    <th className="px-4 py-3">Question</th>
+                    <th className="px-4 py-3">Score</th>
+                    {family.type === "TYPE_1" && (
+                      <>
+                        <th className="px-4 py-3 text-center">Top</th>
+                        <th className="px-4 py-3 text-center">Bot</th>
+                      </>
+                    )}
+                    <th className="px-4 py-3 text-center">
+                      {family.type === "TYPE_2" ? "Inclure" : fr.form.talk}
+                    </th>
+                    {family.type === "TYPE_1" && (
+                      <th className="px-4 py-3 text-center">{fr.form.talk}</th>
+                    )}
+                    <th className="px-4 py-3">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {family.questions.map((question) => {
+                    const answer: Partial<FormAnswer> =
+                      answers[question.id] || { score: 1 };
+
+                    return (
+                      <tr
+                        key={question.id}
+                        className="border-b border-gray-100 align-top"
+                      >
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          {question.text}
+                        </td>
+                        <td className="px-4 py-3">
+                          <ScoreSelector
+                            value={answer.score ?? 1}
+                            onChange={(value) =>
+                              handleAnswerChange(question.id, "score", value)
+                            }
+                            disabled={isSubmitted}
+                          />
+                        </td>
+
+                        {family.type === "TYPE_1" && (
+                          <>
+                            <td className="px-4 py-3 text-center">
+                              <Checkbox
+                                label=""
+                                checked={answer.top || false}
+                                onChange={(e) =>
+                                  handleAnswerChange(
+                                    question.id,
+                                    "top",
+                                    e.target.checked
+                                  )
+                                }
+                                disabled={isSubmitted}
+                              />
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <Checkbox
+                                label=""
+                                checked={answer.bot || false}
+                                onChange={(e) =>
+                                  handleAnswerChange(
+                                    question.id,
+                                    "bot",
+                                    e.target.checked
+                                  )
+                                }
+                                disabled={isSubmitted}
+                              />
+                            </td>
+                          </>
+                        )}
+
+                        <td className="px-4 py-3 text-center">
+                          <Checkbox
+                            label=""
+                            checked={
+                              family.type === "TYPE_2"
+                                ? answer.include || false
+                                : answer.talk || false
+                            }
+                            onChange={(e) =>
+                              handleAnswerChange(
+                                question.id,
+                                family.type === "TYPE_2" ? "include" : "talk",
+                                e.target.checked
+                              )
+                            }
+                            disabled={isSubmitted}
+                          />
+                        </td>
+
+                        {family.type === "TYPE_1" && (
+                          <td className="px-4 py-3 text-center">
+                            <Checkbox
+                              label=""
+                              checked={answer.talk || false}
+                              onChange={(e) =>
+                                handleAnswerChange(
+                                  question.id,
+                                  "talk",
+                                  e.target.checked
+                                )
+                              }
+                              disabled={isSubmitted}
+                            />
+                          </td>
+                        )}
+
+                        <td className="px-4 py-3">
+                          <Textarea
+                            label=""
+                            value={answer.notes || ""}
+                            onChange={(e) =>
+                              handleAnswerChange(
+                                question.id,
+                                "notes",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Commentaires ou précisions..."
+                            maxLength={2000}
+                            showCount
+                            disabled={isSubmitted}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        ))}
+      </div>
+
       {!isSubmitted && (
-        <div className="sticky bottom-0 flex justify-end gap-4 bg-white p-4 shadow-lg">
+        <div className="sticky bottom-0 mt-6 flex justify-end gap-4 bg-white p-4 shadow-lg">
           <Button
             size="large"
             icon={<SaveOutlined />}
