@@ -1,3 +1,10 @@
+import Link from "next/link";
+import {
+  AppstoreOutlined,
+  FormOutlined,
+  UserOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -6,149 +13,142 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
 
-export default function HomePage() {
+const navLinks = [
+  {
+    href: "/admin/question-families",
+    label: "Familles de questions",
+    icon: AppstoreOutlined,
+    description: "Créer et organiser les familles",
+  },
+  {
+    href: "/admin/questions",
+    label: "Questions",
+    icon: FormOutlined,
+    description: "Gérer les questions par famille",
+  },
+  {
+    href: "/admin/users",
+    label: "Utilisateurs",
+    icon: UserOutlined,
+    description: "Approbation et rôles",
+  },
+  {
+    href: "/form",
+    label: "Formulaire utilisateur",
+    icon: SettingOutlined,
+    description: "Aperçu du formulaire côté membre",
+  },
+];
+
+export default function AdminHomePage() {
   return (
-    <main className="container mx-auto px-4 py-16">
-      <div className="mx-auto max-w-4xl">
-        {/* Hero Section */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-            Base Next.js Template
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            A professional Next.js starter with TypeScript, Tailwind CSS,
-            Prisma, NextAuth, and more. Built with best practices for
-            production-ready applications.
-          </p>
-          <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Link href="/dashboard">
-              <Button size="lg">Get Started</Button>
-            </Link>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button size="lg" variant="outline">
-                View on GitHub
-              </Button>
-            </a>
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 md:flex-row">
+        {/* Sidebar */}
+        <aside className="w-full md:w-64">
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="border-b border-gray-200 p-4">
+              <h1 className="text-lg font-semibold text-gray-900">
+                Fox Club Admin
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Navigation rapide
+              </p>
+            </div>
+            <nav className="p-3">
+              <ul className="space-y-2">
+                {navLinks.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 hover:text-gray-900"
+                      >
+                        <Icon className="text-base text-gray-500" />
+                        <span>{link.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
           </div>
-        </div>
+        </aside>
 
-        {/* Features */}
-        <div className="mt-24 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>TypeScript Strict</CardTitle>
-              <CardDescription>
-                Fully typed with strict TypeScript configuration
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                All code is strictly typed with noImplicitAny and strict null
-                checks enabled.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Authentication</CardTitle>
-              <CardDescription>NextAuth v5 with RBAC</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Complete authentication setup with role-based access control and
-                OAuth providers.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Database Ready</CardTitle>
-              <CardDescription>Prisma ORM with PostgreSQL</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Production-ready database schema with migrations, seed data, and
-                connection pooling.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Error Handling</CardTitle>
-              <CardDescription>Standardized error system</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Business and technical errors handled consistently across the
-                application.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Design System</CardTitle>
-              <CardDescription>Reusable UI components</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Built with Tailwind CSS and Ant Design, with custom reusable
-                components.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Production Ready</CardTitle>
-              <CardDescription>Monitoring & deployment</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Sentry integration, Vercel deployment, and comprehensive testing
-                setup.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tech Stack */}
-        <div className="mt-24">
-          <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900">
-            Built with Modern Tech Stack
-          </h2>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-8">
-            {[
-              "Next.js 15",
-              "React 19",
-              "TypeScript",
-              "Tailwind CSS",
-              "Prisma",
-              "PostgreSQL",
-              "NextAuth",
-              "React Query",
-              "Zod",
-              "Sentry",
-            ].map((tech) => (
-              <div
-                key={tech}
-                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900"
-              >
-                {tech}
+        {/* Main content */}
+        <main className="flex-1 space-y-6">
+          <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-orange-100 via-white to-orange-50 px-6 py-6 shadow-sm">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <p className="text-sm font-medium uppercase text-orange-500">
+                  Tableau de bord
+                </p>
+                <h2 className="text-3xl font-bold text-gray-900">
+                  Bienvenue sur l’admin Fox Club
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Gérez les familles, questions et utilisateurs. Accédez aussi
+                  au formulaire tel que vu par les membres.
+                </p>
               </div>
+              <div className="flex flex-wrap gap-3">
+                <Link href="/admin/question-families">
+                  <Button size="lg">Créer une famille</Button>
+                </Link>
+                <Link href="/admin/questions">
+                  <Button size="lg" variant="outline">
+                    Ajouter une question
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href}>
+                <Card className="h-full transition hover:-translate-y-0.5 hover:shadow-lg">
+                  <CardHeader className="flex flex-row items-center gap-3">
+                    <div className="rounded-lg bg-orange-100 p-3 text-orange-600">
+                      <link.icon />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{link.label}</CardTitle>
+                      <CardDescription>{link.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600">
+                      Gérer les données et la configuration liées à cette
+                      section.
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
-        </div>
+        </main>
       </div>
-    </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 bg-white">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
+          <span>Fox Club Admin · Gestion des contenus et utilisateurs</span>
+          <div className="flex items-center gap-4">
+            <Link href="/form" className="hover:text-gray-700">
+              Formulaire utilisateur
+            </Link>
+            <Link href="/admin/users" className="hover:text-gray-700">
+              Utilisateurs
+            </Link>
+            <Link href="/admin/question-families" className="hover:text-gray-700">
+              Questions
+            </Link>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
