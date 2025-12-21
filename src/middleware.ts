@@ -32,6 +32,7 @@ export default auth((req) => {
 
   // Protected app routes
   if (
+    pathname === "/" ||
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/form") ||

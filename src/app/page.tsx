@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const navLinks = [
+const adminNavLinks = [
   {
     href: "/admin/question-families",
     label: "Familles de questions",
@@ -41,6 +41,21 @@ const navLinks = [
   },
 ];
 
+const userNavLinks = [
+  {
+    href: "/form",
+    label: "Formulaire utilisateur",
+    icon: FormOutlined,
+    description: "Remplir ou mettre à jour mon formulaire",
+  },
+  {
+    href: "/account/password",
+    label: "Mon compte",
+    icon: SettingOutlined,
+    description: "Changer mon mot de passe",
+  },
+];
+
 export default function AdminHomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -57,22 +72,47 @@ export default function AdminHomePage() {
               </p>
             </div>
             <nav className="p-3">
-              <ul className="space-y-2">
-                {navLinks.map((link) => {
-                  const Icon = link.icon;
-                  return (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 hover:text-gray-900"
-                      >
-                        <Icon className="text-base text-gray-500" />
-                        <span>{link.label}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+              <section className="space-y-3">
+                <h3 className="px-3 text-xs font-semibold uppercase text-gray-500">
+                  Admin
+                </h3>
+                <ul className="space-y-2">
+                  {adminNavLinks.map((link) => {
+                    const Icon = link.icon;
+                    return (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 hover:text-gray-900"
+                        >
+                          <Icon className="text-base text-gray-500" />
+                          <span>{link.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <h3 className="px-3 text-xs font-semibold uppercase text-gray-500">
+                  Utilisateur
+                </h3>
+                <ul className="space-y-2">
+                  {userNavLinks.map((link) => {
+                    const Icon = link.icon;
+                    return (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 hover:text-gray-900"
+                        >
+                          <Icon className="text-base text-gray-500" />
+                          <span>{link.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
             </nav>
           </div>
         </aside>
@@ -107,7 +147,7 @@ export default function AdminHomePage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {navLinks.map((link) => (
+            {adminNavLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <Card className="h-full transition hover:-translate-y-0.5 hover:shadow-lg">
                   <CardHeader className="flex flex-row items-center gap-3">
@@ -123,6 +163,29 @@ export default function AdminHomePage() {
                     <p className="text-sm text-gray-600">
                       Gérer les données et la configuration liées à cette
                       section.
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {userNavLinks.map((link) => (
+              <Link key={link.href} href={link.href}>
+                <Card className="h-full transition hover:-translate-y-0.5 hover:shadow-lg">
+                  <CardHeader className="flex flex-row items-center gap-3">
+                    <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
+                      <link.icon />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{link.label}</CardTitle>
+                      <CardDescription>{link.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600">
+                      Accéder rapidement à vos espaces personnels.
                     </p>
                   </CardContent>
                 </Card>
@@ -145,6 +208,9 @@ export default function AdminHomePage() {
             </Link>
             <Link href="/admin/question-families" className="hover:text-gray-700">
               Questions
+            </Link>
+            <Link href="/account/password" className="hover:text-gray-700">
+              Mon compte
             </Link>
           </div>
         </div>
