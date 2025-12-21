@@ -20,25 +20,19 @@ const adminNavLinks = [
     href: "/admin/question-families",
     label: "Familles de questions",
     icon: AppstoreOutlined,
-    description: "Créer et organiser les familles",
+    description: "Creer et organiser les familles",
   },
   {
     href: "/admin/questions",
     label: "Questions",
     icon: FormOutlined,
-    description: "Gérer les questions par famille",
+    description: "Gerer les questions par famille",
   },
   {
     href: "/admin/users",
     label: "Utilisateurs",
     icon: UserOutlined,
-    description: "Approbation et rôles",
-  },
-  {
-    href: "/form",
-    label: "Formulaire utilisateur",
-    icon: SettingOutlined,
-    description: "Aperçu du formulaire côté membre",
+    description: "Approbation et roles",
   },
 ];
 
@@ -47,7 +41,7 @@ const userNavLinks = [
     href: "/form",
     label: "Formulaire utilisateur",
     icon: FormOutlined,
-    description: "Remplir ou mettre à jour mon formulaire",
+    description: "Remplir ou mettre a jour mon formulaire",
   },
   {
     href: "/account/password",
@@ -69,11 +63,9 @@ export default async function AdminHomePage() {
           <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="border-b border-gray-200 p-4">
               <h1 className="text-lg font-semibold text-gray-900">
-                Fox Club Admin
+                {isAdmin ? "Fox Club Admin" : "Fox Club"}
               </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Navigation rapide
-              </p>
+              <p className="mt-1 text-sm text-gray-500">Navigation rapide</p>
             </div>
             <nav className="p-3">
               <section className="space-y-3">
@@ -134,23 +126,28 @@ export default async function AdminHomePage() {
                   Tableau de bord
                 </p>
                 <h2 className="text-3xl font-bold text-gray-900">
-                  Bienvenue sur l’admin Fox Club
+                  {isAdmin
+                    ? "Bienvenue sur l'admin Fox Club"
+                    : "Bienvenue sur votre espace Fox Club"}
                 </h2>
                 <p className="text-sm text-gray-600">
-                  Gérez les familles, questions et utilisateurs. Accédez aussi
-                  au formulaire tel que vu par les membres.
+                  {isAdmin
+                    ? "Gerez les familles, questions et utilisateurs. Accedez aussi au formulaire tel que vu par les membres."
+                    : "Accedez a votre formulaire et a votre compte. Les sections admin sont reservees aux administrateurs."}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Link href="/admin/question-families">
-                  <Button size="lg">Créer une famille</Button>
-                </Link>
-                <Link href="/admin/questions">
-                  <Button size="lg" variant="outline">
-                    Ajouter une question
-                  </Button>
-                </Link>
-              </div>
+              {isAdmin && (
+                <div className="flex flex-wrap gap-3">
+                  <Link href="/admin/question-families">
+                    <Button size="lg">Creer une famille</Button>
+                  </Link>
+                  <Link href="/admin/questions">
+                    <Button size="lg" variant="outline">
+                      Ajouter une question
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
@@ -170,8 +167,7 @@ export default async function AdminHomePage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-gray-600">
-                        Gérer les données et la configuration liées à cette
-                        section.
+                        Gerer les donnees et la configuration liees a cette section.
                       </p>
                     </CardContent>
                   </Card>
@@ -195,7 +191,7 @@ export default async function AdminHomePage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-gray-600">
-                      Accéder rapidement à vos espaces personnels.
+                      Acceder rapidement a vos espaces personnels.
                     </p>
                   </CardContent>
                 </Card>
@@ -208,17 +204,21 @@ export default async function AdminHomePage() {
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
-          <span>Fox Club Admin · Gestion des contenus et utilisateurs</span>
+          <span>Fox Club � Gestion des contenus et utilisateurs</span>
           <div className="flex items-center gap-4">
             <Link href="/form" className="hover:text-gray-700">
               Formulaire utilisateur
             </Link>
-            <Link href="/admin/users" className="hover:text-gray-700">
-              Utilisateurs
-            </Link>
-            <Link href="/admin/question-families" className="hover:text-gray-700">
-              Questions
-            </Link>
+            {isAdmin && (
+              <>
+                <Link href="/admin/users" className="hover:text-gray-700">
+                  Utilisateurs
+                </Link>
+                <Link href="/admin/question-families" className="hover:text-gray-700">
+                  Questions
+                </Link>
+              </>
+            )}
             <Link href="/account/password" className="hover:text-gray-700">
               Mon compte
             </Link>
