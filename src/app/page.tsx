@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import {
   AppstoreOutlined,
   FormOutlined,
@@ -204,7 +204,7 @@ export default async function AdminHomePage() {
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
-          <span>Fox Club � Gestion des contenus et utilisateurs</span>
+          <span>Fox Club · Gestion des contenus et utilisateurs</span>
           <div className="flex items-center gap-4">
             <Link href="/form" className="hover:text-gray-700">
               Formulaire utilisateur
