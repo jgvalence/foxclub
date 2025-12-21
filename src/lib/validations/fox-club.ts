@@ -193,12 +193,26 @@ export const updateUserRoleSchema = z.object({
  */
 export const bulkUserActionSchema = z.object({
   userIds: z.array(z.string().cuid()).min(1, "Au moins un utilisateur est requis"),
-  action: z.enum(["approve", "reject", "delete"]),
+ action: z.enum(["approve", "reject", "delete"]),
+});
+
+/**
+ * Schema for creating a user from admin
+ */
+export const createUserSchema = z.object({
+  email: z.string().email("Email invalide"),
+  name: z.string().min(1).max(100).optional(),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  role: z.enum(["USER", "ADMIN", "MODERATOR"]).optional().default("USER"),
+  approved: z.boolean().optional().default(true),
 });
 
 export type UpdateUserApprovalInput = z.infer<typeof updateUserApprovalSchema>;
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
 export type BulkUserActionInput = z.infer<typeof bulkUserActionSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
 
 // ==============================================================================
 // PAGINATION & FILTERING

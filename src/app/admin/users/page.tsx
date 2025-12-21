@@ -10,6 +10,10 @@ import {
   Space,
   Select,
   Popconfirm,
+  Modal,
+  Form,
+  Input,
+  Switch,
 } from "antd";
 import {
   CheckOutlined,
@@ -43,8 +47,10 @@ interface User {
  */
 export default function UsersPage() {
   const [filterApproved, setFilterApproved] = useState<string | undefined>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [form] = Form.useForm();
 
   // Fetch users
   const { data, isLoading } = useQuery({
@@ -114,6 +120,36 @@ export default function UsersPage() {
 
   const handleDelete = (id: string) => {
     deleteUserMutation.mutate(id);
+  };
+
+  const createUserMutation = useMutation({
+    mutationFn: async (values: any) => {
+      const res = await fetch("/api/admin/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw new Error("Failed to create");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      message.success(fr.toast.createSuccess);
+      setIsModalOpen(false);
+      form.resetFields();
+    },
+    onError: () => {
+      message.error(fr.common.error);
+    },
+  });
+
+  const handleCreate = async () => {
+    try {
+      const values = await form.validateFields();
+      createUserMutation.mutate(values);
+    } catch (_error) {
+      // validation handled by antd
+    }
   };
 
   const columns = [
@@ -236,10 +272,11 @@ export default function UsersPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {fr.users.title}
-        </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-gray-900">{fr.users.title}</h1>
+        <Button type="primary" onClick={() => setIsModalOpen(true)}>
+          Créer un utilisateur
+        </Button>
       </div>
 
       {/* Statistics */}
@@ -287,6 +324,64 @@ export default function UsersPage() {
           showTotal: (total) => `Total: ${total}`,
         }}
       />
+
+      <Modal
+        title="Créer un utilisateur"
+        open={isModalOpen}
+        onOk={handleCreate}
+        onCancel={() => {
+          setIsModalOpen(false);
+          form.resetFields();
+        }}
+        okText="Créer"
+        cancelText={fr.common.cancel}
+        confirmLoading={createUserMutation.isPending}
+      >
+        <Form form={form} layout="vertical" className="mt-4">
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true, type: "email", message: "Email invalide" }]}
+          >
+            <Input placeholder="user@foxclub.com" />
+          </Form.Item>
+          <Form.Item name="name" label="Nom">
+            <Input placeholder="Nom complet (optionnel)" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Mot de passe"
+            rules={[
+              { required: true, message: "Mot de passe requis" },
+              { min: 8, message: "8 caractères minimum" },
+            ]}
+          >
+            <Input.Password placeholder="********" />
+          </Form.Item>
+          <Form.Item
+            name="role"
+            label={fr.users.role}
+            initialValue="USER"
+            rules={[{ required: true }]}
+          >
+            <Select
+              options={[
+                { label: "User", value: "USER" },
+                { label: "Admin", value: "ADMIN" },
+                { label: "Moderator", value: "MODERATOR" },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item
+            name="approved"
+            label="Approuvé"
+            valuePropName="checked"
+            initialValue={true}
+          >
+            <Switch />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
