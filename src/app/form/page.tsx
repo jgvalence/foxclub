@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -162,7 +162,7 @@ export default function FormPage() {
       <div className="p-6">
         <Alert
           message={fr.form.notApproved}
-          description="Veuillez contacter un administrateur pour obtenir l'accès."
+          description="Veuillez contacter un administrateur pour obtenir l'accÃ¨s."
           type="warning"
           showIcon
         />
@@ -179,27 +179,27 @@ export default function FormPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{fr.form.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
-          Sélectionnez un score et cochez les colonnes correspondantes. Les
-          légendes indiquent le niveau d’appétence.
+          SÃ©lectionnez un score et cochez les colonnes correspondantes. Les
+          lÃ©gendes indiquent le niveau dâ€™appÃ©tence.
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
           <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-red-700">
-            ?? Fantasme
+            â¤ï¸ Fantasme
           </span>
           <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-green-700">
-            ?? Ok de le pratiquer
+            ğŸŸ¢ Ok de le pratiquer
           </span>
           <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-            ?? Curieux / doucement
+            ğŸŸ  Curieux / doucement
           </span>
           <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-gray-700">
-            ? Non / Limite
+            âš« Non / Limite
           </span>
         </div>
         {isSubmitted && (
           <Alert
             message="Formulaire soumis"
-            description="Votre formulaire a été soumis et ne peut plus être modifié."
+            description="Votre formulaire a Ã©tÃ© soumis et ne peut plus Ãªtre modifiÃ©."
             type="success"
             showIcon
             className="mt-4"
@@ -347,7 +347,7 @@ export default function FormPage() {
                                 e.target.value
                               )
                             }
-                            placeholder="Commentaires ou précisions..."
+                            placeholder="Commentaires ou prÃ©cisions..."
                             maxLength={2000}
                             showCount
                             disabled={isSubmitted}
