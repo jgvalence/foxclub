@@ -50,6 +50,16 @@ export default auth((req) => {
     }
   }
 
+  // Force password change if required (except on password page and auth/api)
+  if (
+    isAuthenticated &&
+    req.auth?.user?.mustChangePassword &&
+    !pathname.startsWith("/account/password") &&
+    !pathname.startsWith("/api")
+  ) {
+    return NextResponse.redirect(new URL("/account/password", req.url));
+  }
+
   // Redirect authenticated users away from auth pages
   if (isAuthenticated && pathname.startsWith("/auth/")) {
     return NextResponse.redirect(new URL("/dashboard", req.url));

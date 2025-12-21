@@ -6,9 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 // ==============================================================================
@@ -30,6 +28,7 @@ model User {
   password      String? // Nullable for OAuth users
   role          UserRole  @default(USER)
   approved      Boolean   @default(false) // User must be approved by admin to fill forms
+  mustChangePassword Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

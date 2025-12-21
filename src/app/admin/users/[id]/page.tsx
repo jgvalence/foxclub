@@ -13,6 +13,8 @@ import {
   message,
   Popconfirm,
   Spin,
+  Modal,
+  Typography,
 } from "antd";
 import {
   PlusOutlined,
@@ -81,6 +83,9 @@ export default function UserDetailPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
 
   // Fetch user details
   const { data: user, isLoading, error } = useQuery<User>({
@@ -159,6 +164,28 @@ export default function UserDetailPage() {
     createNoteMutation.mutate(noteContent);
   };
 
+  const handleAdminResetPassword = async () => {
+    setResetLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur lors de la reinitialisation");
+      }
+      const data = await res.json();
+      setTempPassword(data.password);
+      message.success("Mot de passe temporaire genere");
+    } catch (err: any) {
+      message.error(err.message || "Erreur");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -182,9 +209,14 @@ export default function UserDetailPage() {
 
   return (
     <div className="p-6">
-      <h1 className="mb-6 text-3xl font-bold text-gray-900">
-        Profil utilisateur
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-gray-900">Profil utilisateur</h1>
+        {isAdmin && (
+          <Button onClick={() => setResetModalOpen(true)}>
+            Generer un mot de passe temporaire
+          </Button>
+        )}
+      </div>
 
       {/* User Info */}
       <Card title="Informations" className="mb-6">
@@ -352,6 +384,31 @@ export default function UserDetailPage() {
             />
           )}
         </Card>
+      )}
+
+      {isAdmin && (
+        <Modal
+          title="Mot de passe temporaire"
+          open={resetModalOpen}
+          onOk={handleAdminResetPassword}
+          onCancel={() => {
+            setResetModalOpen(false);
+            setTempPassword(null);
+          }}
+          okText="Generer"
+          cancelText="Fermer"
+          confirmLoading={resetLoading}
+        >
+          <Typography.Paragraph className="text-sm text-gray-600">
+            Un mot de passe temporaire sera cree et devra etre communique a
+            l'utilisateur. Il sera force a le changer a la prochaine connexion.
+          </Typography.Paragraph>
+          {tempPassword && (
+            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 font-mono text-sm">
+              {tempPassword}
+            </div>
+          )}
+        </Modal>
       )}
     </div>
   );

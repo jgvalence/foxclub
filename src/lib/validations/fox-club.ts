@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 // ==============================================================================
 // ENUMS
@@ -23,7 +23,7 @@ export const createQuestionFamilySchema = z.object({
   label: z
     .string()
     .min(1, "Le nom de la famille est requis")
-    .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+    .max(100, "Le nom ne peut pas depasser 100 caracteres"),
   type: QuestionTypeSchema,
   order: z.number().int().min(0).optional().default(0),
 });
@@ -35,7 +35,7 @@ export const updateQuestionFamilySchema = z.object({
   label: z
     .string()
     .min(1, "Le nom de la famille est requis")
-    .max(100, "Le nom ne peut pas dépasser 100 caractères")
+    .max(100, "Le nom ne peut pas depasser 100 caracteres")
     .optional(),
   type: QuestionTypeSchema.optional(),
   order: z.number().int().min(0).optional(),
@@ -60,7 +60,7 @@ export const createQuestionSchema = z.object({
   text: z
     .string()
     .min(1, "Le texte de la question est requis")
-    .max(1000, "Le texte ne peut pas dépasser 1000 caractères"),
+    .max(1000, "Le texte ne peut pas depasser 1000 caracteres"),
   order: z.number().int().min(0).optional().default(0),
 });
 
@@ -71,7 +71,7 @@ export const updateQuestionSchema = z.object({
   text: z
     .string()
     .min(1, "Le texte de la question est requis")
-    .max(1000, "Le texte ne peut pas dépasser 1000 caractères")
+    .max(1000, "Le texte ne peut pas depasser 1000 caracteres")
     .optional(),
   order: z.number().int().min(0).optional(),
   questionFamilyId: z.string().cuid("ID de famille invalide").optional(),
@@ -88,8 +88,11 @@ export type UpdateQuestionInput = z.infer<typeof updateQuestionSchema>;
  * Base schema for common answer fields
  */
 const baseAnswerSchema = z.object({
-  score: z.number().int().min(1).max(4, "Le score doit être entre 1 et 4"),
-  notes: z.string().max(2000, "Les notes ne peuvent pas dépasser 2000 caractères").optional(),
+  score: z.number().int().min(1).max(4, "Le score doit etre entre 1 et 4"),
+  notes: z
+    .string()
+    .max(2000, "Les notes ne peuvent pas depasser 2000 caracteres")
+    .optional(),
 });
 
 /**
@@ -129,7 +132,9 @@ export const createFormAnswerSchema = z.object({
  * Schema for submitting an entire form
  */
 export const submitFormSchema = z.object({
-  answers: z.array(createFormAnswerSchema).min(1, "Au moins une réponse est requise"),
+  answers: z
+    .array(createFormAnswerSchema)
+    .min(1, "Au moins une reponse est requise"),
   submitted: z.boolean().optional().default(false),
 });
 
@@ -151,7 +156,7 @@ export const createAdminNoteSchema = z.object({
   content: z
     .string()
     .min(1, "Le contenu de la note est requis")
-    .max(5000, "Le contenu ne peut pas dépasser 5000 caractères"),
+    .max(5000, "Le contenu ne peut pas depasser 5000 caracteres"),
   pinned: z.boolean().optional().default(false),
 });
 
@@ -162,7 +167,7 @@ export const updateAdminNoteSchema = z.object({
   content: z
     .string()
     .min(1, "Le contenu de la note est requis")
-    .max(5000, "Le contenu ne peut pas dépasser 5000 caractères")
+    .max(5000, "Le contenu ne peut pas depasser 5000 caracteres")
     .optional(),
   pinned: z.boolean().optional(),
 });
@@ -193,7 +198,7 @@ export const updateUserRoleSchema = z.object({
  */
 export const bulkUserActionSchema = z.object({
   userIds: z.array(z.string().cuid()).min(1, "Au moins un utilisateur est requis"),
- action: z.enum(["approve", "reject", "delete"]),
+  action: z.enum(["approve", "reject", "delete"]),
 });
 
 /**
@@ -202,17 +207,35 @@ export const bulkUserActionSchema = z.object({
 export const createUserSchema = z.object({
   email: z.string().email("Email invalide"),
   name: z.string().min(1).max(100).optional(),
-  password: z
-    .string()
-    .min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caracteres"),
   role: z.enum(["USER", "ADMIN", "MODERATOR"]).optional().default("USER"),
   approved: z.boolean().optional().default(true),
+});
+
+/**
+ * Schema for user self-service password change
+ */
+export const changePasswordSchema = z.object({
+  oldPassword: z.string().min(1, "Ancien mot de passe requis"),
+  newPassword: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caracteres"),
+});
+
+/**
+ * Schema for admin temporary password reset
+ */
+export const adminResetPasswordSchema = z.object({
+  password: z.string().min(8).optional(),
+  mustChangePassword: z.boolean().optional().default(true),
 });
 
 export type UpdateUserApprovalInput = z.infer<typeof updateUserApprovalSchema>;
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
 export type BulkUserActionInput = z.infer<typeof bulkUserActionSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type AdminResetPasswordInput = z.infer<typeof adminResetPasswordSchema>;
 
 // ==============================================================================
 // PAGINATION & FILTERING

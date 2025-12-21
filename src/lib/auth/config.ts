@@ -17,11 +17,13 @@ declare module "next-auth" {
     user: {
       id: string;
       role: UserRole;
+      mustChangePassword: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
     role: UserRole;
+    mustChangePassword: boolean;
   }
 }
 
@@ -75,6 +77,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           image: user.image,
           role: user.role,
+          mustChangePassword: user.mustChangePassword,
         };
       },
     }),
@@ -103,6 +106,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.mustChangePassword = (user as any).mustChangePassword ?? false;
       }
       return token;
     },
@@ -110,6 +114,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
+        session.user.mustChangePassword = Boolean(token.mustChangePassword);
       }
       return session;
     },
