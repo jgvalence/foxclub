@@ -116,10 +116,19 @@ export default function QuestionFamiliesPage() {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      const payload = {
+        ...values,
+        // Ensure numeric order to satisfy API validation
+        order:
+          values.order === undefined || values.order === null
+            ? undefined
+            : Number(values.order),
+      };
+
       if (editingFamily) {
-        updateMutation.mutate({ id: editingFamily.id, values });
+        updateMutation.mutate({ id: editingFamily.id, values: payload });
       } else {
-        createMutation.mutate(values);
+        createMutation.mutate(payload);
       }
     } catch (_error) {
       // Validation error
