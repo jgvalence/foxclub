@@ -38,9 +38,15 @@ export default auth((req) => {
       return NextResponse.redirect(signInUrl);
     }
 
-    // Admin-only routes
-    if (pathname.startsWith("/admin") && req.auth?.user.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/", req.url));
+    // Admin-only routes with owner exception for /admin/users/[id]
+    if (pathname.startsWith("/admin")) {
+      const userIdParam = pathname.match(/^\/admin\/users\/([^/]+)/)?.[1];
+      const isOwnerRoute =
+        userIdParam && req.auth?.user?.id && userIdParam === req.auth.user.id;
+
+      if (req.auth?.user.role !== "ADMIN" && !isOwnerRoute) {
+        return NextResponse.redirect(new URL("/", req.url));
+      }
     }
   }
 

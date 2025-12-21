@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleApiError } from "@/lib/errors/handlers";
-import { requireAdmin } from "@/lib/auth/helpers";
+import { requireAdmin, requireAuth } from "@/lib/auth/helpers";
 import { prisma } from "@/lib/db/prisma";
 import {
   updateUserApprovalSchema,
@@ -21,8 +21,12 @@ interface RouteParams {
  */
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   try {
-    await requireAdmin();
+    const sessionUser = await requireAuth();
     const { id } = await params;
+
+    if (sessionUser.role !== "ADMIN" && sessionUser.id !== id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const user = await prisma.user.findUnique({
       where: { id },

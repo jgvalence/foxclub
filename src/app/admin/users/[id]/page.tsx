@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
@@ -20,7 +20,8 @@ import {
   PushpinOutlined,
   PushpinFilled,
 } from "@ant-design/icons";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { fr } from "@/lib/i18n";
 import { formatDistanceToNow } from "date-fns";
 import { fr as frLocale } from "date-fns/locale/fr";
@@ -77,10 +78,12 @@ export default function UserDetailPage() {
   const params = useParams();
   const userId = params.id as string;
   const [noteContent, setNoteContent] = useState("");
+  const { data: session } = useSession();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   // Fetch user details
-  const { data: user, isLoading } = useQuery<User>({
+  const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["admin-user", userId],
     queryFn: async () => {
       const res = await fetch(`/api/admin/users/${userId}`);
@@ -89,7 +92,17 @@ export default function UserDetailPage() {
     },
   });
 
-  // Create note mutation
+  const isAdmin = session?.user?.role === "ADMIN";
+  const isSelf = session?.user?.id === userId;
+
+  useEffect(() => {
+    if (error && !isAdmin && !isSelf) {
+      message.error("Accès refusé");
+      router.push("/");
+    }
+  }, [error, isAdmin, isSelf, router]);
+
+  // Create note mutation (admin only)
   const createNoteMutation = useMutation({
     mutationFn: async (content: string) => {
       const res = await fetch("/api/admin/notes", {
@@ -107,7 +120,7 @@ export default function UserDetailPage() {
     },
   });
 
-  // Toggle pin mutation
+  // Toggle pin mutation (admin only)
   const togglePinMutation = useMutation({
     mutationFn: async ({ id, pinned }: { id: string; pinned: boolean }) => {
       const res = await fetch(`/api/admin/notes/${id}`, {
@@ -123,7 +136,7 @@ export default function UserDetailPage() {
     },
   });
 
-  // Delete note mutation
+  // Delete note mutation (admin only)
   const deleteNoteMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/notes/${id}`, {
@@ -159,15 +172,13 @@ export default function UserDetailPage() {
   }
 
   // Group answers by family
-  const answersByFamily = user.userForm?.answers.reduce(
-    (acc, answer) => {
+  const answersByFamily =
+    user.userForm?.answers.reduce((acc, answer) => {
       const familyLabel = answer.question.questionFamily.label;
       if (!acc[familyLabel]) acc[familyLabel] = [];
       acc[familyLabel].push(answer);
       return acc;
-    },
-    {} as Record<string, FormAnswer[]>
-  ) || {};
+    }, {} as Record<string, FormAnswer[]>) || {};
 
   return (
     <div className="p-6">
@@ -244,7 +255,7 @@ export default function UserDetailPage() {
                     </div>
                     {answer.notes && (
                       <div className="mt-2 text-sm text-gray-600">
-                        📝 {answer.notes}
+                        ✦ {answer.notes}
                       </div>
                     )}
                   </div>
@@ -255,93 +266,93 @@ export default function UserDetailPage() {
         </Card>
       )}
 
-      {/* Admin Notes */}
-      <Card
-        title={fr.adminNotes.title}
-        extra={
-          <span className="text-sm text-gray-500">
-            {fr.adminNotes.privateNote}
-          </span>
-        }
-      >
-        {/* Add Note */}
-        <div className="mb-4">
-          <TextArea
-            rows={3}
-            placeholder="Ajouter une note..."
-            value={noteContent}
-            onChange={(e) => setNoteContent(e.target.value)}
-          />
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            className="mt-2"
-            onClick={handleAddNote}
-            loading={createNoteMutation.isPending}
-          >
-            {fr.adminNotes.add}
-          </Button>
-        </div>
-
-        {/* Notes List */}
-        {user.adminNotes.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            {fr.adminNotes.noNotes}
+      {/* Admin Notes (admin only) */}
+      {isAdmin && (
+        <Card
+          title={fr.adminNotes.title}
+          extra={
+            <span className="text-sm text-gray-500">
+              {fr.adminNotes.privateNote}
+            </span>
+          }
+        >
+          {/* Add Note */}
+          <div className="mb-4">
+            <TextArea
+              rows={3}
+              placeholder="Ajouter une note..."
+              value={noteContent}
+              onChange={(e) => setNoteContent(e.target.value)}
+            />
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              className="mt-2"
+              onClick={handleAddNote}
+              loading={createNoteMutation.isPending}
+            >
+              {fr.adminNotes.add}
+            </Button>
           </div>
-        ) : (
-          <List
-            dataSource={user.adminNotes}
-            renderItem={(note) => (
-              <List.Item
-                className={note.pinned ? "bg-yellow-50" : ""}
-                actions={[
-                  <Button
-                    key="pin"
-                    type="text"
-                    icon={
-                      note.pinned ? <PushpinFilled /> : <PushpinOutlined />
+
+          {/* Notes List */}
+          {user.adminNotes.length === 0 ? (
+            <div className="py-8 text-center text-gray-500">
+              {fr.adminNotes.noNotes}
+            </div>
+          ) : (
+            <List
+              dataSource={user.adminNotes}
+              renderItem={(note) => (
+                <List.Item
+                  className={note.pinned ? "bg-yellow-50" : ""}
+                  actions={[
+                    <Button
+                      key="pin"
+                      type="text"
+                      icon={note.pinned ? <PushpinFilled /> : <PushpinOutlined />}
+                      onClick={() =>
+                        togglePinMutation.mutate({
+                          id: note.id,
+                          pinned: note.pinned,
+                        })
+                      }
+                    />,
+                    <Popconfirm
+                      key="delete"
+                      title={fr.adminNotes.delete}
+                      onConfirm={() => deleteNoteMutation.mutate(note.id)}
+                      okText={fr.common.confirm}
+                      cancelText={fr.common.cancel}
+                    >
+                      <Button type="text" danger icon={<DeleteOutlined />} />
+                    </Popconfirm>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <Space>
+                        {note.pinned && (
+                          <Tag color="gold">
+                            <PushpinFilled /> Épinglée
+                          </Tag>
+                        )}
+                        <span className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(note.createdAt), {
+                            addSuffix: true,
+                            locale: frLocale,
+                          })}
+                        </span>
+                      </Space>
                     }
-                    onClick={() =>
-                      togglePinMutation.mutate({
-                        id: note.id,
-                        pinned: note.pinned,
-                      })
-                    }
-                  />,
-                  <Popconfirm
-                    key="delete"
-                    title={fr.adminNotes.delete}
-                    onConfirm={() => deleteNoteMutation.mutate(note.id)}
-                    okText={fr.common.confirm}
-                    cancelText={fr.common.cancel}
-                  >
-                    <Button type="text" danger icon={<DeleteOutlined />} />
-                  </Popconfirm>,
-                ]}
-              >
-                <List.Item.Meta
-                  title={
-                    <Space>
-                      {note.pinned && (
-                        <Tag color="gold">
-                          <PushpinFilled /> Épinglée
-                        </Tag>
-                      )}
-                      <span className="text-xs text-gray-500">
-                        {formatDistanceToNow(new Date(note.createdAt), {
-                          addSuffix: true,
-                          locale: frLocale,
-                        })}
-                      </span>
-                    </Space>
-                  }
-                  description={note.content}
-                />
-              </List.Item>
-            )}
-          />
-        )}
-      </Card>
+                    description={note.content}
+                  />
+                </List.Item>
+              )}
+            />
+          )}
+        </Card>
+      )}
     </div>
   );
 }
