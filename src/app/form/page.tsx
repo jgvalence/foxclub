@@ -175,7 +175,7 @@ export default function FormPage() {
   const isSubmitted = data.form.submitted;
 
   return (
-    <div className="mx-auto max-w-5xl p-6">
+    <div className="mx-auto max-w-7xl p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{fr.form.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -238,16 +238,14 @@ export default function FormPage() {
                     <th className="px-4 py-3 text-center">
                       {family.type === "TYPE_2" ? "Inclure" : fr.form.talk}
                     </th>
-                    {family.type === "TYPE_1" && (
-                      <th className="px-4 py-3 text-center">{fr.form.talk}</th>
-                    )}
                     <th className="px-4 py-3">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {family.questions.map((question) => {
-                    const answer: Partial<FormAnswer> =
-                      answers[question.id] || { score: 1 };
+                    const answer: Partial<FormAnswer> = answers[
+                      question.id
+                    ] || { score: 1 };
 
                     return (
                       <tr
@@ -318,23 +316,6 @@ export default function FormPage() {
                             disabled={isSubmitted}
                           />
                         </td>
-
-                        {family.type === "TYPE_1" && (
-                          <td className="px-4 py-3 text-center">
-                            <Checkbox
-                              label=""
-                              checked={answer.talk || false}
-                              onChange={(e) =>
-                                handleAnswerChange(
-                                  question.id,
-                                  "talk",
-                                  e.target.checked
-                                )
-                              }
-                              disabled={isSubmitted}
-                            />
-                          </td>
-                        )}
 
                         <td className="px-4 py-3">
                           <Textarea
