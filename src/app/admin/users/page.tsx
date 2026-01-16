@@ -10,6 +10,7 @@ import {
   Space,
   Select,
   Popconfirm,
+  Tooltip,
   Modal,
   Form,
   Input,
@@ -57,7 +58,8 @@ export default function UsersPage() {
     queryKey: ["admin-users", filterApproved],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (filterApproved !== undefined) params.append("approved", filterApproved);
+      if (filterApproved !== undefined)
+        params.append("approved", filterApproved);
       const res = await fetch(`/api/admin/users?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
@@ -147,7 +149,7 @@ export default function UsersPage() {
     try {
       const values = await form.validateFields();
       createUserMutation.mutate(values);
-    } catch (_error) {
+    } catch {
       // validation handled by antd
     }
   };
@@ -177,8 +179,7 @@ export default function UsersPage() {
         { text: fr.users.approved, value: "true" },
         { text: fr.users.pending, value: "false" },
       ],
-      onFilter: (value: any, record: User) =>
-        String(record.approved) === value,
+      onFilter: (value: any, record: User) => String(record.approved) === value,
     },
     {
       title: fr.users.role,
@@ -219,31 +220,31 @@ export default function UsersPage() {
       render: (record: User) => (
         <Space>
           {!record.approved && (
-            <Button
-              type="link"
-              icon={<CheckOutlined />}
-              onClick={() => handleApprove(record.id)}
-            >
-              {fr.users.approve}
-            </Button>
+            <Tooltip title={fr.users.approve}>
+              <Button
+                type="link"
+                icon={<CheckOutlined />}
+                onClick={() => handleApprove(record.id)}
+              />
+            </Tooltip>
           )}
           {record.approved && (
+            <Tooltip title={fr.users.reject}>
+              <Button
+                type="link"
+                danger
+                icon={<CloseOutlined />}
+                onClick={() => handleReject(record.id)}
+              />
+            </Tooltip>
+          )}
+          <Tooltip title={fr.users.viewProfile}>
             <Button
               type="link"
-              danger
-              icon={<CloseOutlined />}
-              onClick={() => handleReject(record.id)}
-            >
-              {fr.users.reject}
-            </Button>
-          )}
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewProfile(record.id)}
-          >
-            {fr.users.viewProfile}
-          </Button>
+              icon={<EyeOutlined />}
+              onClick={() => handleViewProfile(record.id)}
+            />
+          </Tooltip>
           <Popconfirm
             title="Supprimer l'utilisateur"
             description="Êtes-vous sûr de vouloir supprimer cet utilisateur ?"
@@ -251,9 +252,9 @@ export default function UsersPage() {
             okText={fr.common.confirm}
             cancelText={fr.common.cancel}
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              {fr.common.delete}
-            </Button>
+            <Tooltip title={fr.common.delete}>
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -341,7 +342,9 @@ export default function UsersPage() {
           <Form.Item
             name="email"
             label="Email"
-            rules={[{ required: true, type: "email", message: "Email invalide" }]}
+            rules={[
+              { required: true, type: "email", message: "Email invalide" },
+            ]}
           >
             <Input placeholder="user@foxclub.com" />
           </Form.Item>

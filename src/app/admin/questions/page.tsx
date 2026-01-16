@@ -13,6 +13,7 @@ import {
   Popconfirm,
   Space,
   Tag,
+  Tooltip,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { fr } from "@/lib/i18n";
@@ -168,7 +169,7 @@ export default function QuestionsPage() {
       } else {
         createMutation.mutate(payload);
       }
-    } catch (_error) {
+    } catch {
       // Validation error
     }
   };
@@ -224,13 +225,13 @@ export default function QuestionsPage() {
       key: "actions",
       render: (record: Question) => (
         <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            {fr.common.edit}
-          </Button>
+          <Tooltip title={fr.common.edit}>
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
           <Popconfirm
             title={fr.questions.delete}
             description={fr.questions.confirmDelete}
@@ -238,9 +239,9 @@ export default function QuestionsPage() {
             okText={fr.common.confirm}
             cancelText={fr.common.cancel}
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              {fr.common.delete}
-            </Button>
+            <Tooltip title={fr.common.delete}>
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -289,9 +290,7 @@ export default function QuestionsPage() {
       />
 
       <Modal
-        title={
-          editingQuestion ? fr.questions.edit : fr.questions.create
-        }
+        title={editingQuestion ? fr.questions.edit : fr.questions.create}
         open={isModalOpen}
         onOk={handleSubmit}
         onCancel={handleCancel}
@@ -333,11 +332,7 @@ export default function QuestionsPage() {
             />
           </Form.Item>
 
-          <Form.Item
-            name="order"
-            label={fr.questions.order}
-            initialValue={0}
-          >
+          <Form.Item name="order" label={fr.questions.order} initialValue={0}>
             <Input type="number" min={0} />
           </Form.Item>
         </Form>
