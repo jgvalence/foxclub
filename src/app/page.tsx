@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth/config";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 const adminNavLinks = [
   {
@@ -112,6 +113,10 @@ export default async function AdminHomePage() {
                     );
                   })}
                 </ul>
+
+                <div className="mt-4 border-t border-gray-200 pt-4">
+                  <LogoutButton />
+                </div>
               </section>
             </nav>
           </div>
@@ -167,7 +172,8 @@ export default async function AdminHomePage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-gray-600">
-                        Gerer les donnees et la configuration liees a cette section.
+                        Gerer les donnees et la configuration liees a cette
+                        section.
                       </p>
                     </CardContent>
                   </Card>
@@ -214,7 +220,10 @@ export default async function AdminHomePage() {
                 <Link href="/admin/users" className="hover:text-gray-700">
                   Utilisateurs
                 </Link>
-                <Link href="/admin/question-families" className="hover:text-gray-700">
+                <Link
+                  href="/admin/question-families"
+                  className="hover:text-gray-700"
+                >
                   Questions
                 </Link>
               </>
