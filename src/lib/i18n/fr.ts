@@ -49,7 +49,8 @@ export const fr = {
     hasAccount: "Déjà un compte ?",
     loginButton: "Se connecter",
     registerButton: "S'inscrire",
-    pendingApproval: "Votre compte est en attente d'approbation par un administrateur.",
+    pendingApproval:
+      "Votre compte est en attente d'approbation par un administrateur.",
   },
 
   // User Management
@@ -80,7 +81,8 @@ export const fr = {
     order: "Ordre d'affichage",
     type1: "Type 1 (Top/Bot/Talk)",
     type2: "Type 2 (Include/Talk)",
-    confirmDelete: "Êtes-vous sûr de vouloir supprimer cette famille de questions ? Toutes les questions associées seront également supprimées.",
+    confirmDelete:
+      "Êtes-vous sûr de vouloir supprimer cette famille de questions ? Toutes les questions associées seront également supprimées.",
   },
 
   // Questions
@@ -108,10 +110,17 @@ export const fr = {
     bot: "Bot",
     talk: "À discuter",
     include: "Inclure",
-    confirmSubmit: "Une fois soumis, vous ne pourrez plus modifier vos réponses. Êtes-vous sûr ?",
+    confirmSubmit:
+      "Une fois soumis, vous ne pourrez plus modifier vos réponses. Êtes-vous sûr ?",
+    reopen: "Autoriser la modification",
+    reopenTitle: "Rouvrir le formulaire ?",
+    reopenDescription:
+      "Le formulaire repassera en brouillon et l'utilisateur pourra modifier ses réponses.",
+    reopenSuccess: "Le formulaire est repassé en brouillon",
     saveSuccess: "Vos réponses ont été enregistrées",
     submitSuccess: "Votre formulaire a été soumis avec succès",
-    notApproved: "Vous devez être approuvé par un administrateur pour remplir le formulaire.",
+    notApproved:
+      "Vous devez être approuvé par un administrateur pour remplir le formulaire.",
   },
 
   // Score labels

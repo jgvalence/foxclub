@@ -165,6 +165,26 @@ export default function UserDetailPage() {
     },
   });
 
+  const updateFormStatusMutation = useMutation({
+    mutationFn: async (submitted: boolean) => {
+      const res = await fetch(`/api/admin/users/${userId}/form`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submitted }),
+      });
+      if (!res.ok) throw new Error("Failed to update form status");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-user", userId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      message.success(fr.form.reopenSuccess);
+    },
+    onError: () => {
+      message.error(fr.common.error);
+    },
+  });
+
   const handleAddNote = () => {
     if (!noteContent.trim()) {
       message.error("Le contenu est requis");
@@ -245,6 +265,15 @@ export default function UserDetailPage() {
     message.success("PDF téléchargé avec succès");
   };
 
+  const handleReopenForm = () =>
+    Modal.confirm({
+      title: fr.form.reopenTitle,
+      content: fr.form.reopenDescription,
+      okText: fr.common.confirm,
+      cancelText: fr.common.cancel,
+      onOk: () => updateFormStatusMutation.mutateAsync(false),
+    });
+
   const handleAdminResetPassword = async () => {
     setResetLoading(true);
     try {
@@ -260,8 +289,9 @@ export default function UserDetailPage() {
       const data = await res.json();
       setTempPassword(data.password);
       message.success("Mot de passe temporaire genere");
-    } catch (err: any) {
-      message.error(err.message || "Erreur");
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Erreur");
+      message.error(error.message || "Erreur");
     } finally {
       setResetLoading(false);
     }
@@ -303,7 +333,21 @@ export default function UserDetailPage() {
       </div>
 
       {/* User Info */}
-      <Card title="Informations" className="mb-6">
+      <Card
+        title="Informations"
+        className="mb-6"
+        extra={
+          isAdmin &&
+          user.userForm?.submitted && (
+            <Button
+              onClick={handleReopenForm}
+              loading={updateFormStatusMutation.isPending}
+            >
+              {fr.form.reopen}
+            </Button>
+          )
+        }
+      >
         <Descriptions column={2}>
           <Descriptions.Item label="Pseudo">{user.pseudo}</Descriptions.Item>
           <Descriptions.Item label="Nom complet">

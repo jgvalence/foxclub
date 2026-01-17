@@ -131,9 +131,19 @@ export const submitFormSchema = z.object({
   submitted: z.boolean().optional().default(false),
 });
 
+/**
+ * Schema for admin updates of a user's form submission status
+ */
+export const updateFormSubmissionStatusSchema = z.object({
+  submitted: z.boolean(),
+});
+
 export type FormAnswer = z.infer<typeof formAnswerSchema>;
 export type CreateFormAnswerInput = z.infer<typeof createFormAnswerSchema>;
 export type SubmitFormInput = z.infer<typeof submitFormSchema>;
+export type UpdateFormSubmissionStatusInput = z.infer<
+  typeof updateFormSubmissionStatusSchema
+>;
 
 // ==============================================================================
 // ADMIN NOTE SCHEMAS
