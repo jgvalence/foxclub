@@ -27,7 +27,7 @@ function SignInContent() {
   const searchParams = useSearchParams();
   const callbackUrl =
     searchParams.get("callbackUrl") || "/admin/question-families";
-  const [email, setEmail] = useState("");
+  const [pseudo, setPseudo] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,7 +38,7 @@ function SignInContent() {
     setError("");
     const res = await signIn("credentials", {
       redirect: false,
-      email,
+      pseudo,
       password,
       callbackUrl,
     });
@@ -64,13 +64,15 @@ function SignInContent() {
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Email</label>
+              <label className="text-sm font-medium text-gray-700">
+                Pseudo
+              </label>
               <Input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@foxclub.com"
+                value={pseudo}
+                onChange={(e) => setPseudo(e.target.value)}
+                placeholder="Votre pseudo"
               />
             </div>
 

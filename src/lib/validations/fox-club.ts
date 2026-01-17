@@ -12,6 +12,13 @@
 export const QuestionTypeSchema = z.enum(["TYPE_1", "TYPE_2"]);
 export type QuestionType = z.infer<typeof QuestionTypeSchema>;
 
+/**
+ * User type enum matching Prisma schema
+ * ETUDIANT, SOUMIS
+ */
+export const UserTypeSchema = z.enum(["ETUDIANT", "SOUMIS"]);
+export type UserType = z.infer<typeof UserTypeSchema>;
+
 // ==============================================================================
 // QUESTION FAMILY SCHEMAS
 // ==============================================================================
@@ -96,29 +103,15 @@ const baseAnswerSchema = z.object({
 });
 
 /**
- * Schema for TYPE_1 answers (Score, Top, Bot, Talk, Notes)
+ * Schema for form answers (accepts all fields, optional booleans)
+ * Both TYPE_1 and TYPE_2 questions use the same schema for flexibility
  */
-export const type1AnswerSchema = baseAnswerSchema.extend({
-  top: z.boolean().optional().default(false),
-  bot: z.boolean().optional().default(false),
-  talk: z.boolean().optional().default(false),
-  include: z.undefined(), // Not used in TYPE_1
+export const formAnswerSchema = baseAnswerSchema.extend({
+  top: z.boolean().optional(),
+  bot: z.boolean().optional(),
+  talk: z.boolean().optional(),
+  include: z.boolean().optional(),
 });
-
-/**
- * Schema for TYPE_2 answers (Score, Talk, Include, Notes)
- */
-export const type2AnswerSchema = baseAnswerSchema.extend({
-  talk: z.boolean().optional().default(false),
-  include: z.boolean().optional().default(false),
-  top: z.undefined(), // Not used in TYPE_2
-  bot: z.undefined(), // Not used in TYPE_2
-});
-
-/**
- * Union schema for any answer type
- */
-export const formAnswerSchema = z.union([type1AnswerSchema, type2AnswerSchema]);
 
 /**
  * Schema for creating/updating a single answer
@@ -138,8 +131,6 @@ export const submitFormSchema = z.object({
   submitted: z.boolean().optional().default(false),
 });
 
-export type Type1Answer = z.infer<typeof type1AnswerSchema>;
-export type Type2Answer = z.infer<typeof type2AnswerSchema>;
 export type FormAnswer = z.infer<typeof formAnswerSchema>;
 export type CreateFormAnswerInput = z.infer<typeof createFormAnswerSchema>;
 export type SubmitFormInput = z.infer<typeof submitFormSchema>;
@@ -197,7 +188,9 @@ export const updateUserRoleSchema = z.object({
  * Schema for bulk user actions
  */
 export const bulkUserActionSchema = z.object({
-  userIds: z.array(z.string().cuid()).min(1, "Au moins un utilisateur est requis"),
+  userIds: z
+    .array(z.string().cuid())
+    .min(1, "Au moins un utilisateur est requis"),
   action: z.enum(["approve", "reject", "delete"]),
 });
 
@@ -205,11 +198,36 @@ export const bulkUserActionSchema = z.object({
  * Schema for creating a user from admin
  */
 export const createUserSchema = z.object({
-  email: z.string().email("Email invalide"),
-  name: z.string().min(1).max(100).optional(),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caracteres"),
+  pseudo: z
+    .string()
+    .min(3, "Le pseudo doit contenir au moins 3 caracteres")
+    .max(50, "Le pseudo ne peut pas depasser 50 caracteres"),
+  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  firstName: z.string().max(100).optional(),
+  lastName: z.string().max(100).optional(),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caracteres"),
   role: z.enum(["USER", "ADMIN", "MODERATOR"]).optional().default("USER"),
+  types: z.array(UserTypeSchema).optional().default([]),
   approved: z.boolean().optional().default(true),
+});
+
+/**
+ * Schema for updating a user from admin (all fields optional)
+ */
+export const updateUserSchema = z.object({
+  pseudo: z
+    .string()
+    .min(3, "Le pseudo doit contenir au moins 3 caracteres")
+    .max(50, "Le pseudo ne peut pas depasser 50 caracteres")
+    .optional(),
+  email: z.string().email("Email invalide").optional().or(z.literal("")),
+  firstName: z.string().max(100).optional().or(z.literal("")),
+  lastName: z.string().max(100).optional().or(z.literal("")),
+  role: z.enum(["USER", "ADMIN", "MODERATOR"]).optional(),
+  types: z.array(UserTypeSchema).optional(),
+  approved: z.boolean().optional(),
 });
 
 /**
@@ -234,6 +252,7 @@ export type UpdateUserApprovalInput = z.infer<typeof updateUserApprovalSchema>;
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
 export type BulkUserActionInput = z.infer<typeof bulkUserActionSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type AdminResetPasswordInput = z.infer<typeof adminResetPasswordSchema>;
 
@@ -271,10 +290,13 @@ export const questionsFilterSchema = paginationSchema.extend({
 export const usersFilterSchema = paginationSchema.extend({
   approved: z.boolean().optional(),
   role: z.enum(["USER", "ADMIN", "MODERATOR"]).optional(),
+  types: z.array(UserTypeSchema).optional(),
   search: z.string().optional(),
 });
 
 export type PaginationInput = z.infer<typeof paginationSchema>;
-export type QuestionFamiliesFilterInput = z.infer<typeof questionFamiliesFilterSchema>;
+export type QuestionFamiliesFilterInput = z.infer<
+  typeof questionFamiliesFilterSchema
+>;
 export type QuestionsFilterInput = z.infer<typeof questionsFilterSchema>;
 export type UsersFilterInput = z.infer<typeof usersFilterSchema>;

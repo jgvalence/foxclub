@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleApiError } from "@/lib/errors/handlers";
 import { requireAdmin, requireAuth } from "@/lib/auth/helpers";
 import { prisma } from "@/lib/db/prisma";
-import {
-  updateUserApprovalSchema,
-  updateUserRoleSchema,
-} from "@/lib/validations/fox-club";
+import { updateUserSchema } from "@/lib/validations/fox-club";
 import { NotFoundError } from "@/lib/errors/types";
 
 interface RouteParams {
@@ -69,7 +66,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
 /**
  * PATCH /api/admin/users/[id]
- * Update user approval status or role
+ * Update user profile, role, types, or approval status
  * Admin only
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
@@ -88,27 +85,32 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       throw new NotFoundError("User not found");
     }
 
-    // Validate based on what's being updated
+    // Validate the update data
+    const validated = updateUserSchema.parse(body);
+
+    // Build update data, handling empty strings as null
     const data: any = {};
-
-    if ("approved" in body) {
-      const validated = updateUserApprovalSchema.parse(body);
-      data.approved = validated.approved;
-    }
-
-    if ("role" in body) {
-      const validated = updateUserRoleSchema.parse(body);
-      data.role = validated.role;
-    }
+    if (validated.pseudo !== undefined) data.pseudo = validated.pseudo;
+    if (validated.email !== undefined) data.email = validated.email || null;
+    if (validated.firstName !== undefined)
+      data.firstName = validated.firstName || null;
+    if (validated.lastName !== undefined)
+      data.lastName = validated.lastName || null;
+    if (validated.role !== undefined) data.role = validated.role;
+    if (validated.types !== undefined) data.types = validated.types;
+    if (validated.approved !== undefined) data.approved = validated.approved;
 
     const updated = await prisma.user.update({
       where: { id },
       data,
       select: {
         id: true,
+        pseudo: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         role: true,
+        types: true,
         approved: true,
         createdAt: true,
         updatedAt: true,

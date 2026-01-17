@@ -28,8 +28,10 @@ export async function GET(request: NextRequest) {
     if (role) where.role = role;
     if (search) {
       where.OR = [
+        { pseudo: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
-        { name: { contains: search, mode: "insensitive" } },
+        { firstName: { contains: search, mode: "insensitive" } },
+        { lastName: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -39,9 +41,12 @@ export async function GET(request: NextRequest) {
         where,
         select: {
           id: true,
+          pseudo: true,
           email: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           role: true,
+          types: true,
           approved: true,
           createdAt: true,
           updatedAt: true,
@@ -115,10 +120,7 @@ export async function POST(request: NextRequest) {
         break;
 
       default:
-        return NextResponse.json(
-          { error: "Invalid action" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
     return NextResponse.json({

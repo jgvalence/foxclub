@@ -9,53 +9,62 @@ async function main() {
   // Create admin user
   const adminPassword = await hash("admin123", 12);
   const admin = await prisma.user.upsert({
-    where: { email: "admin@foxclub.com" },
+    where: { pseudo: "admin" },
     update: {},
     create: {
+      pseudo: "admin",
       email: "admin@foxclub.com",
-      name: "Admin Fox",
+      firstName: "Admin",
+      lastName: "Fox",
       password: adminPassword,
       role: "ADMIN",
+      types: [],
       approved: true,
       emailVerified: new Date(),
     },
   });
 
-  console.warn("✅ Created admin user:", admin.email);
+  console.warn("✅ Created admin user:", admin.pseudo);
 
   // Create approved demo user
   const userPassword = await hash("user123", 12);
   const user = await prisma.user.upsert({
-    where: { email: "user@foxclub.com" },
+    where: { pseudo: "demo_user" },
     update: {},
     create: {
+      pseudo: "demo_user",
       email: "user@foxclub.com",
-      name: "Demo User",
+      firstName: "Demo",
+      lastName: "User",
       password: userPassword,
       role: "USER",
+      types: ["ETUDIANT"],
       approved: true,
       emailVerified: new Date(),
     },
   });
 
-  console.warn("✅ Created approved demo user:", user.email);
+  console.warn("✅ Created approved demo user:", user.pseudo);
 
   // Create pending user (waiting for approval)
   const pendingPassword = await hash("pending123", 12);
   const pendingUser = await prisma.user.upsert({
-    where: { email: "pending@foxclub.com" },
+    where: { pseudo: "pending_user" },
     update: {},
     create: {
+      pseudo: "pending_user",
       email: "pending@foxclub.com",
-      name: "Pending User",
+      firstName: "Pending",
+      lastName: "User",
       password: pendingPassword,
       role: "USER",
+      types: ["SOUMIS"],
       approved: false,
       emailVerified: new Date(),
     },
   });
 
-  console.warn("✅ Created pending user:", pendingUser.email);
+  console.warn("✅ Created pending user:", pendingUser.pseudo);
 
   // Create Question Families with TYPE_1 questions
   const type1Families = [
@@ -77,17 +86,15 @@ async function main() {
     },
     {
       label: "Pinces",
-      questions: [
-        "Pinces à tétons",
-        "Pinces à clitoris",
-        "Pinces à lèvres",
-      ],
+      questions: ["Pinces à tétons", "Pinces à clitoris", "Pinces à lèvres"],
     },
   ];
 
   for (const familyData of type1Families) {
     const family = await prisma.questionFamily.upsert({
-      where: { id: `type1-${familyData.label.toLowerCase().replace(/\s+/g, "-")}` },
+      where: {
+        id: `type1-${familyData.label.toLowerCase().replace(/\s+/g, "-")}`,
+      },
       update: {},
       create: {
         label: familyData.label,
@@ -110,32 +117,28 @@ async function main() {
       });
     }
 
-    console.warn(`✅ Created TYPE_1 family: ${family.label} with ${familyData.questions.length} questions`);
+    console.warn(
+      `✅ Created TYPE_1 family: ${family.label} with ${familyData.questions.length} questions`
+    );
   }
 
   // Create Question Families with TYPE_2 questions
   const type2Families = [
     {
       label: "Pratiques spéciales",
-      questions: [
-        "Jeux de rôle",
-        "Photographie érotique",
-        "Exhibitionnisme",
-      ],
+      questions: ["Jeux de rôle", "Photographie érotique", "Exhibitionnisme"],
     },
     {
       label: "Jouets",
-      questions: [
-        "Vibromasseurs",
-        "Plugs anaux",
-        "Menottes",
-      ],
+      questions: ["Vibromasseurs", "Plugs anaux", "Menottes"],
     },
   ];
 
   for (const familyData of type2Families) {
     const family = await prisma.questionFamily.upsert({
-      where: { id: `type2-${familyData.label.toLowerCase().replace(/\s+/g, "-")}` },
+      where: {
+        id: `type2-${familyData.label.toLowerCase().replace(/\s+/g, "-")}`,
+      },
       update: {},
       create: {
         label: familyData.label,
@@ -158,7 +161,9 @@ async function main() {
       });
     }
 
-    console.warn(`✅ Created TYPE_2 family: ${family.label} with ${familyData.questions.length} questions`);
+    console.warn(
+      `✅ Created TYPE_2 family: ${family.label} with ${familyData.questions.length} questions`
+    );
   }
 
   // Create a demo form for the approved user with some answers
@@ -210,10 +215,10 @@ async function main() {
 
   console.warn("🎉 Fox Club seed completed successfully!");
   console.warn("");
-  console.warn("📝 Login credentials:");
-  console.warn("   Admin: admin@foxclub.com / admin123");
-  console.warn("   User:  user@foxclub.com / user123");
-  console.warn("   Pending: pending@foxclub.com / pending123");
+  console.warn("📝 Login credentials (pseudo / password):");
+  console.warn("   Admin: admin / admin123");
+  console.warn("   User:  demo_user / user123");
+  console.warn("   Pending: pending_user / pending123");
 }
 
 main()

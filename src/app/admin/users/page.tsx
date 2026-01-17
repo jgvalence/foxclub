@@ -20,6 +20,7 @@ import {
   CheckOutlined,
   CloseOutlined,
   EyeOutlined,
+  EditOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
@@ -27,9 +28,12 @@ import { fr } from "@/lib/i18n";
 
 interface User {
   id: string;
-  email: string;
-  name: string | null;
+  pseudo: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
   role: string;
+  types: string[];
   approved: boolean;
   createdAt: string;
   _count: {
@@ -49,9 +53,12 @@ interface User {
 export default function UsersPage() {
   const [filterApproved, setFilterApproved] = useState<string | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [form] = Form.useForm();
+  const [editForm] = Form.useForm();
 
   // Fetch users
   const { data, isLoading } = useQuery({
@@ -80,6 +87,9 @@ export default function UsersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       message.success(fr.toast.updateSuccess);
+      setIsEditModalOpen(false);
+      setEditingUser(null);
+      editForm.resetFields();
     },
     onError: () => {
       message.error(fr.common.error);
@@ -124,6 +134,31 @@ export default function UsersPage() {
     deleteUserMutation.mutate(id);
   };
 
+  const handleEdit = (user: User) => {
+    setEditingUser(user);
+    editForm.setFieldsValue({
+      pseudo: user.pseudo,
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      email: user.email || "",
+      types: user.types || [],
+      role: user.role,
+      approved: user.approved,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async () => {
+    try {
+      const values = await editForm.validateFields();
+      if (editingUser) {
+        updateUserMutation.mutate({ id: editingUser.id, data: values });
+      }
+    } catch {
+      // validation handled by antd
+    }
+  };
+
   const createUserMutation = useMutation({
     mutationFn: async (values: any) => {
       const res = await fetch("/api/admin/users/create", {
@@ -156,15 +191,35 @@ export default function UsersPage() {
 
   const columns = [
     {
+      title: "Pseudo",
+      dataIndex: "pseudo",
+      key: "pseudo",
+    },
+    {
+      title: "Nom complet",
+      key: "fullName",
+      render: (record: User) => {
+        const parts = [record.firstName, record.lastName].filter(Boolean);
+        return parts.length > 0 ? parts.join(" ") : "-";
+      },
+    },
+    {
       title: "Email",
       dataIndex: "email",
       key: "email",
+      render: (email: string | null) => email || "-",
     },
     {
-      title: "Nom",
-      dataIndex: "name",
-      key: "name",
-      render: (name: string | null) => name || "-",
+      title: "Types",
+      key: "types",
+      render: (record: User) =>
+        record.types?.length > 0
+          ? record.types.map((t) => (
+              <Tag key={t} color={t === "ETUDIANT" ? "blue" : "purple"}>
+                {t === "ETUDIANT" ? "Étudiant" : "Soumis"}
+              </Tag>
+            ))
+          : "-",
     },
     {
       title: fr.users.status,
@@ -243,6 +298,13 @@ export default function UsersPage() {
               type="link"
               icon={<EyeOutlined />}
               onClick={() => handleViewProfile(record.id)}
+            />
+          </Tooltip>
+          <Tooltip title="Modifier">
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
             />
           </Tooltip>
           <Popconfirm
@@ -340,16 +402,23 @@ export default function UsersPage() {
       >
         <Form form={form} layout="vertical" className="mt-4">
           <Form.Item
-            name="email"
-            label="Email"
+            name="pseudo"
+            label="Pseudo"
             rules={[
-              { required: true, type: "email", message: "Email invalide" },
+              { required: true, message: "Pseudo requis" },
+              { min: 3, message: "3 caractères minimum" },
             ]}
           >
-            <Input placeholder="user@foxclub.com" />
+            <Input placeholder="pseudo_utilisateur" />
           </Form.Item>
-          <Form.Item name="name" label="Nom">
-            <Input placeholder="Nom complet (optionnel)" />
+          <Form.Item name="firstName" label="Prénom">
+            <Input placeholder="Prénom (optionnel)" />
+          </Form.Item>
+          <Form.Item name="lastName" label="Nom">
+            <Input placeholder="Nom (optionnel)" />
+          </Form.Item>
+          <Form.Item name="email" label="Email">
+            <Input placeholder="email@example.com (optionnel)" />
           </Form.Item>
           <Form.Item
             name="password"
@@ -360,6 +429,16 @@ export default function UsersPage() {
             ]}
           >
             <Input.Password placeholder="********" />
+          </Form.Item>
+          <Form.Item name="types" label="Types" initialValue={[]}>
+            <Select
+              mode="multiple"
+              placeholder="Sélectionner les types"
+              options={[
+                { label: "Étudiant", value: "ETUDIANT" },
+                { label: "Soumis", value: "SOUMIS" },
+              ]}
+            />
           </Form.Item>
           <Form.Item
             name="role"
@@ -381,6 +460,69 @@ export default function UsersPage() {
             valuePropName="checked"
             initialValue={true}
           >
+            <Switch />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Edit User Modal */}
+      <Modal
+        title="Modifier l'utilisateur"
+        open={isEditModalOpen}
+        onOk={handleEditSubmit}
+        onCancel={() => {
+          setIsEditModalOpen(false);
+          setEditingUser(null);
+          editForm.resetFields();
+        }}
+        okText="Enregistrer"
+        cancelText={fr.common.cancel}
+        confirmLoading={updateUserMutation.isPending}
+      >
+        <Form form={editForm} layout="vertical" className="mt-4">
+          <Form.Item
+            name="pseudo"
+            label="Pseudo"
+            rules={[
+              { required: true, message: "Pseudo requis" },
+              { min: 3, message: "3 caractères minimum" },
+            ]}
+          >
+            <Input placeholder="pseudo_utilisateur" />
+          </Form.Item>
+          <Form.Item name="firstName" label="Prénom">
+            <Input placeholder="Prénom (optionnel)" />
+          </Form.Item>
+          <Form.Item name="lastName" label="Nom">
+            <Input placeholder="Nom (optionnel)" />
+          </Form.Item>
+          <Form.Item name="email" label="Email">
+            <Input placeholder="email@example.com (optionnel)" />
+          </Form.Item>
+          <Form.Item name="types" label="Types">
+            <Select
+              mode="multiple"
+              placeholder="Sélectionner les types"
+              options={[
+                { label: "Étudiant", value: "ETUDIANT" },
+                { label: "Soumis", value: "SOUMIS" },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item
+            name="role"
+            label={fr.users.role}
+            rules={[{ required: true }]}
+          >
+            <Select
+              options={[
+                { label: "User", value: "USER" },
+                { label: "Admin", value: "ADMIN" },
+                { label: "Moderator", value: "MODERATOR" },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item name="approved" label="Approuvé" valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>

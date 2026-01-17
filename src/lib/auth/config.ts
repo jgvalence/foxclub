@@ -44,19 +44,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // verifyRequest: "/auth/verify",
   },
   providers: [
-    // Email/Password authentication
+    // Pseudo/Password authentication
     Credentials({
       credentials: {
-        email: { label: "Email", type: "email" },
+        pseudo: { label: "Pseudo", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.pseudo || !credentials?.password) {
           return null;
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { pseudo: credentials.pseudo as string },
         });
 
         if (!user || !user.password) {
@@ -75,7 +75,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
+          name:
+            user.firstName && user.lastName
+              ? `${user.firstName} ${user.lastName}`
+              : user.pseudo,
           image: user.image,
           role: user.role,
           mustChangePassword: user.mustChangePassword,

@@ -3,8 +3,14 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, Button, message, Alert, Modal, Spin } from "antd";
-import { SaveOutlined, SendOutlined } from "@ant-design/icons";
+import {
+  SaveOutlined,
+  SendOutlined,
+  DownloadOutlined,
+} from "@ant-design/icons";
+import { useSession } from "next-auth/react";
 import { fr } from "@/lib/i18n";
+import { generateFormPDF } from "@/lib/utils/pdf";
 import { ScoreSelector } from "@/components/ui/score-selector";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,6 +51,7 @@ interface FormData {
 export default function FormPage() {
   const [answers, setAnswers] = useState<Record<string, FormAnswer>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const { data: session } = useSession();
 
   const { data, isLoading, error } = useQuery<FormData>({
     queryKey: ["user-form"],
@@ -149,6 +156,13 @@ export default function FormPage() {
     });
   };
 
+  const handleDownloadPDF = () => {
+    if (!data) return;
+    const userName = session?.user?.name || undefined;
+    generateFormPDF(data.questionFamilies, answers, userName);
+    message.success("PDF telecharge avec succes");
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -197,13 +211,23 @@ export default function FormPage() {
           </span>
         </div>
         {isSubmitted && (
-          <Alert
-            message="Formulaire soumis"
-            description="Votre formulaire a été soumis et ne peut plus être modifié."
-            type="success"
-            showIcon
-            className="mt-4"
-          />
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <Alert
+              message="Formulaire soumis"
+              description="Votre formulaire a été soumis et ne peut plus être modifié."
+              type="success"
+              showIcon
+              className="flex-1"
+            />
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={handleDownloadPDF}
+              size="large"
+            >
+              Telecharger PDF
+            </Button>
+          </div>
         )}
       </div>
 

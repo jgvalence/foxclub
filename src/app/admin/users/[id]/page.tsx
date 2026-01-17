@@ -21,11 +21,13 @@ import {
   DeleteOutlined,
   PushpinOutlined,
   PushpinFilled,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { fr } from "@/lib/i18n";
 import { formatDistanceToNow } from "date-fns";
+import { generateFormPDF } from "@/lib/utils/pdf";
 import { fr as frLocale } from "date-fns/locale/fr";
 
 const { TextArea } = Input;
@@ -58,9 +60,12 @@ interface FormAnswer {
 
 interface User {
   id: string;
-  email: string;
-  name: string | null;
+  pseudo: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
   role: string;
+  types: string[];
   approved: boolean;
   createdAt: string;
   userForm: {
@@ -88,7 +93,11 @@ export default function UserDetailPage() {
   const [resetLoading, setResetLoading] = useState(false);
 
   // Fetch user details
-  const { data: user, isLoading, error } = useQuery<User>({
+  const {
+    data: user,
+    isLoading,
+    error,
+  } = useQuery<User>({
     queryKey: ["admin-user", userId],
     queryFn: async () => {
       const res = await fetch(`/api/admin/users/${userId}`);
@@ -164,6 +173,78 @@ export default function UserDetailPage() {
     createNoteMutation.mutate(noteContent);
   };
 
+  const handleDownloadPDF = () => {
+    if (!user?.userForm?.answers) return;
+
+    // Transform answers into questionFamilies format expected by PDF generator
+    const familyMap = new Map<
+      string,
+      {
+        id: string;
+        label: string;
+        type: "TYPE_1" | "TYPE_2";
+        order: number;
+        questions: { id: string; text: string; order: number }[];
+      }
+    >();
+
+    user.userForm.answers.forEach((answer, index) => {
+      const familyLabel = answer.question.questionFamily.label;
+      const familyType = answer.question.questionFamily.type as
+        | "TYPE_1"
+        | "TYPE_2";
+
+      if (!familyMap.has(familyLabel)) {
+        familyMap.set(familyLabel, {
+          id: familyLabel,
+          label: familyLabel,
+          type: familyType,
+          order: familyMap.size,
+          questions: [],
+        });
+      }
+
+      const family = familyMap.get(familyLabel)!;
+      family.questions.push({
+        id: answer.question.id,
+        text: answer.question.text,
+        order: index,
+      });
+    });
+
+    const questionFamilies = Array.from(familyMap.values());
+
+    // Transform answers into Record<string, FormAnswer> format
+    const answersRecord: Record<
+      string,
+      {
+        questionId: string;
+        score: number;
+        notes?: string;
+        top?: boolean;
+        bot?: boolean;
+        talk?: boolean;
+        include?: boolean;
+      }
+    > = {};
+
+    user.userForm.answers.forEach((answer) => {
+      answersRecord[answer.question.id] = {
+        questionId: answer.question.id,
+        score: answer.score,
+        notes: answer.notes || undefined,
+        top: answer.top ?? undefined,
+        bot: answer.bot ?? undefined,
+        talk: answer.talk ?? undefined,
+        include: answer.include ?? undefined,
+      };
+    });
+
+    const userName = user.pseudo;
+    generateFormPDF(questionFamilies, answersRecord, userName);
+    message.success("PDF téléchargé avec succès");
+  };
+
   const handleAdminResetPassword = async () => {
     setResetLoading(true);
     try {
@@ -200,12 +281,15 @@ export default function UserDetailPage() {
 
   // Group answers by family
   const answersByFamily =
-    user.userForm?.answers.reduce((acc, answer) => {
-      const familyLabel = answer.question.questionFamily.label;
-      if (!acc[familyLabel]) acc[familyLabel] = [];
-      acc[familyLabel].push(answer);
-      return acc;
-    }, {} as Record<string, FormAnswer[]>) || {};
+    user.userForm?.answers.reduce(
+      (acc, answer) => {
+        const familyLabel = answer.question.questionFamily.label;
+        if (!acc[familyLabel]) acc[familyLabel] = [];
+        acc[familyLabel].push(answer);
+        return acc;
+      },
+      {} as Record<string, FormAnswer[]>
+    ) || {};
 
   return (
     <div className="p-6">
@@ -221,9 +305,21 @@ export default function UserDetailPage() {
       {/* User Info */}
       <Card title="Informations" className="mb-6">
         <Descriptions column={2}>
-          <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
-          <Descriptions.Item label="Nom">
-            {user.name || "-"}
+          <Descriptions.Item label="Pseudo">{user.pseudo}</Descriptions.Item>
+          <Descriptions.Item label="Nom complet">
+            {[user.firstName, user.lastName].filter(Boolean).join(" ") || "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Email">
+            {user.email || "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Types">
+            {user.types?.length > 0
+              ? user.types.map((t) => (
+                  <Tag key={t} color={t === "ETUDIANT" ? "blue" : "purple"}>
+                    {t === "ETUDIANT" ? "Étudiant" : "Soumis"}
+                  </Tag>
+                ))
+              : "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Rôle">
             <Tag color="blue">{user.role}</Tag>
@@ -257,44 +353,163 @@ export default function UserDetailPage() {
 
       {/* Form Answers */}
       {user.userForm && user.userForm.answers.length > 0 && (
-        <Card title="Réponses au formulaire" className="mb-6">
-          {Object.entries(answersByFamily).map(([family, answers]) => (
-            <div key={family} className="mb-6">
-              <h3 className="mb-3 text-lg font-semibold text-primary-600">
-                {family}
-              </h3>
-              <div className="space-y-3">
-                {answers.map((answer) => (
-                  <div
-                    key={answer.id}
-                    className="rounded-lg border border-gray-200 p-4"
-                  >
-                    <div className="mb-2 font-medium">{answer.question.text}</div>
-                    <div className="flex flex-wrap gap-2">
-                      <Tag color="blue">Score: {answer.score}</Tag>
-                      {answer.top !== null && answer.top && (
-                        <Tag color="pink">Top</Tag>
-                      )}
-                      {answer.bot !== null && answer.bot && (
-                        <Tag color="purple">Bot</Tag>
-                      )}
-                      {answer.talk !== null && answer.talk && (
-                        <Tag color="orange">À discuter</Tag>
-                      )}
-                      {answer.include !== null && answer.include && (
-                        <Tag color="green">Inclure</Tag>
-                      )}
-                    </div>
-                    {answer.notes && (
-                      <div className="mt-2 text-sm text-gray-600">
-                        ✦ {answer.notes}
-                      </div>
-                    )}
-                  </div>
-                ))}
+        <Card
+          title="Réponses au formulaire"
+          className="mb-6"
+          extra={
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              onClick={handleDownloadPDF}
+            >
+              Télécharger PDF
+            </Button>
+          }
+        >
+          {/* Score Legend */}
+          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-lg bg-gray-50 p-3 text-sm">
+            <span className="font-medium text-gray-700">Légende :</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-red-700">
+              ❤️ Fantasme
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-green-700">
+              🟢 Ok
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
+              🟠 Curieux
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-3 py-1 text-gray-700">
+              ⚫ Non
+            </span>
+          </div>
+
+          {Object.entries(answersByFamily).map(([family, answers]) => {
+            const familyType = answers[0]?.question.questionFamily.type;
+            return (
+              <div key={family} className="mb-6 last:mb-0">
+                <div className="mb-3 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {family}
+                  </h3>
+                  <Tag color={familyType === "TYPE_1" ? "blue" : "purple"}>
+                    {familyType === "TYPE_1" ? "Type 1" : "Type 2"}
+                  </Tag>
+                </div>
+
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-orange-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
+                          Question
+                        </th>
+                        <th className="w-24 px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
+                          Score
+                        </th>
+                        {familyType === "TYPE_1" && (
+                          <>
+                            <th className="w-16 px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
+                              Top
+                            </th>
+                            <th className="w-16 px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
+                              Bot
+                            </th>
+                          </>
+                        )}
+                        <th className="w-20 px-4 py-3 text-center text-xs font-semibold uppercase text-gray-600">
+                          {familyType === "TYPE_2" ? "Inclure" : "Discuter"}
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-600">
+                          Notes
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {answers.map((answer) => {
+                        const scoreEmoji =
+                          answer.score === 4
+                            ? "❤️"
+                            : answer.score === 3
+                              ? "🟢"
+                              : answer.score === 2
+                                ? "🟠"
+                                : "⚫";
+                        const scoreBg =
+                          answer.score === 4
+                            ? "bg-red-50 text-red-700"
+                            : answer.score === 3
+                              ? "bg-green-50 text-green-700"
+                              : answer.score === 2
+                                ? "bg-amber-50 text-amber-700"
+                                : "bg-gray-100 text-gray-700";
+
+                        return (
+                          <tr key={answer.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                              {answer.question.text}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium ${scoreBg}`}
+                              >
+                                {scoreEmoji} {answer.score}
+                              </span>
+                            </td>
+                            {familyType === "TYPE_1" && (
+                              <>
+                                <td className="px-4 py-3 text-center">
+                                  {answer.top ? (
+                                    <span className="text-lg text-pink-500">
+                                      ✓
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-300">–</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {answer.bot ? (
+                                    <span className="text-lg text-purple-500">
+                                      ✓
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-300">–</span>
+                                  )}
+                                </td>
+                              </>
+                            )}
+                            <td className="px-4 py-3 text-center">
+                              {familyType === "TYPE_2" ? (
+                                answer.include ? (
+                                  <span className="text-lg text-green-500">
+                                    ✓
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-300">–</span>
+                                )
+                              ) : answer.talk ? (
+                                <span className="text-lg text-orange-500">
+                                  ✓
+                                </span>
+                              ) : (
+                                <span className="text-gray-300">–</span>
+                              )}
+                            </td>
+                            <td className="max-w-xs px-4 py-3 text-sm text-gray-600">
+                              {answer.notes ? (
+                                <span className="italic">{answer.notes}</span>
+                              ) : (
+                                <span className="text-gray-300">–</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </Card>
       )}
 
@@ -342,7 +557,9 @@ export default function UserDetailPage() {
                     <Button
                       key="pin"
                       type="text"
-                      icon={note.pinned ? <PushpinFilled /> : <PushpinOutlined />}
+                      icon={
+                        note.pinned ? <PushpinFilled /> : <PushpinOutlined />
+                      }
                       onClick={() =>
                         togglePinMutation.mutate({
                           id: note.id,
@@ -400,8 +617,9 @@ export default function UserDetailPage() {
           confirmLoading={resetLoading}
         >
           <Typography.Paragraph className="text-sm text-gray-600">
-            Un mot de passe temporaire sera cree et devra etre communique a
-            l'utilisateur. Il sera force a le changer a la prochaine connexion.
+            Un mot de passe temporaire sera créé et devra être communiqué à
+            l&apos;utilisateur. Il sera forcé à le changer à la prochaine
+            connexion.
           </Typography.Paragraph>
           {tempPassword && (
             <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3 font-mono text-sm">

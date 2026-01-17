@@ -21,14 +21,22 @@ enum UserRole {
   MODERATOR
 }
 
+enum UserType {
+  ETUDIANT
+  SOUMIS
+}
+
 model User {
   id            String    @id @default(cuid())
-  email         String    @unique
+  pseudo        String    @unique // Used for login
+  email         String?   // Optional
   emailVerified DateTime?
-  name          String?
+  firstName     String?   // Prénom (optional)
+  lastName      String?   // Nom (optional)
   image         String?
-  password      String? // Nullable for OAuth users
+  password      String?   // Nullable for OAuth users
   role          UserRole  @default(USER)
+  types         UserType[] @default([]) // Multiple select: etudiant, soumis
   approved      Boolean   @default(false) // User must be approved by admin to fill forms
   mustChangePassword Boolean @default(false)
 
@@ -41,6 +49,7 @@ model User {
   userForm   UserForm?
   adminNotes AdminNote[]
 
+  @@index([pseudo])
   @@index([email])
   @@index([approved])
   @@map("users")
