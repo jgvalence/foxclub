@@ -3,7 +3,7 @@
 import { SessionProvider } from "next-auth/react";
 import { QueryProvider } from "@/lib/query/provider";
 import { Toaster } from "sonner";
-import { ConfigProvider } from "antd";
+import { ConfigProvider, App } from "antd";
 import frFR from "antd/locale/fr_FR";
 import { AppLayout } from "@/components/layout";
 
@@ -23,7 +23,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <QueryProvider>
         <ConfigProvider theme={antdTheme} locale={frFR}>
-          <AppLayout>{children}</AppLayout>
+          <App>
+            <AppLayout>{children}</AppLayout>
+          </App>
         </ConfigProvider>
         <Toaster position="top-right" richColors />
       </QueryProvider>
