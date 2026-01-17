@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, Button, message, Alert, Modal, Spin } from "antd";
+import { Card, Button, Alert, Spin, App } from "antd";
 import {
   SaveOutlined,
   SendOutlined,
@@ -52,6 +52,7 @@ export default function FormPage() {
   const [answers, setAnswers] = useState<Record<string, FormAnswer>>({});
   const [isSaving, setIsSaving] = useState(false);
   const { data: session } = useSession();
+  const { modal, message } = App.useApp();
 
   const { data, isLoading, error } = useQuery<FormData>({
     queryKey: ["user-form"],
@@ -145,7 +146,7 @@ export default function FormPage() {
   };
 
   const handleSubmit = () => {
-    Modal.confirm({
+    modal.confirm({
       title: fr.form.submit,
       content: fr.form.confirmSubmit,
       okText: fr.common.confirm,
