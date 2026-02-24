@@ -6,11 +6,17 @@
 
 /**
  * Question type enum matching Prisma schema
- * TYPE_1: Score (1-4), Top, Bot, Talk, Notes
- * TYPE_2: Score (1-4), Talk, Include, Notes
+ * TYPE_1: Score (1-4), Top, Bot, Talk, Conscent, Notes
+ * TYPE_2: Score (1-4), Talk, Include, Other, Notes
  */
 export const QuestionTypeSchema = z.enum(["TYPE_1", "TYPE_2"]);
 export type QuestionType = z.infer<typeof QuestionTypeSchema>;
+
+/**
+ * Consentement type enum for TYPE_1 questions
+ */
+export const ConscientTypeSchema = z.enum(["TLT", "JS", "M"]);
+export type ConscientType = z.infer<typeof ConscientTypeSchema>;
 
 /**
  * User type enum matching Prisma schema
@@ -109,8 +115,10 @@ const baseAnswerSchema = z.object({
 export const formAnswerSchema = baseAnswerSchema.extend({
   top: z.boolean().optional(),
   bot: z.boolean().optional(),
+  conscent: ConscientTypeSchema.optional(),
   talk: z.boolean().optional(),
   include: z.boolean().optional(),
+  other: z.string().max(2000).optional(),
 });
 
 /**

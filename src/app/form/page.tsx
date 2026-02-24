@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, Button, Alert, Spin, App } from "antd";
+import { Card, Button, Alert, Spin, App, Select } from "antd";
 import {
   SaveOutlined,
   SendOutlined,
@@ -35,8 +35,10 @@ interface FormAnswer {
   notes?: string;
   top?: boolean;
   bot?: boolean;
+  conscent?: "TLT" | "JS" | "M";
   talk?: boolean;
   include?: boolean;
+  other?: string;
 }
 
 interface FormData {
@@ -77,8 +79,10 @@ export default function FormPage() {
           notes: answer.notes || undefined,
           top: answer.top ?? undefined,
           bot: answer.bot ?? undefined,
+          conscent: answer.conscent ?? undefined,
           talk: answer.talk ?? undefined,
           include: answer.include ?? undefined,
+          other: answer.other || undefined,
         };
       });
       setAnswers(existingAnswers);
@@ -94,8 +98,10 @@ export default function FormPage() {
           notes: answer.notes,
           top: answer.top,
           bot: answer.bot,
+          conscent: answer.conscent,
           talk: answer.talk,
           include: answer.include,
+          other: answer.other,
         },
       }));
 
@@ -260,9 +266,20 @@ export default function FormPage() {
                         <th className="px-4 py-3 text-center">Bot</th>
                       </>
                     )}
-                    <th className="px-4 py-3 text-center">
-                      {family.type === "TYPE_2" ? "Inclure" : fr.form.talk}
-                    </th>
+                    <th className="px-4 py-3 text-center">{fr.form.talk}</th>
+                    {family.type === "TYPE_1" && (
+                      <th className="px-4 py-3 text-center">
+                        {fr.form.conscent}
+                      </th>
+                    )}
+                    {family.type === "TYPE_2" && (
+                      <>
+                        <th className="px-4 py-3 text-center">
+                          {fr.form.include}
+                        </th>
+                        <th className="px-4 py-3">{fr.form.other}</th>
+                      </>
+                    )}
                     <th className="px-4 py-3">Notes</th>
                   </tr>
                 </thead>
@@ -326,21 +343,78 @@ export default function FormPage() {
                         <td className="px-4 py-3 text-center">
                           <Checkbox
                             label=""
-                            checked={
-                              family.type === "TYPE_2"
-                                ? answer.include || false
-                                : answer.talk || false
-                            }
+                            checked={answer.talk || false}
                             onChange={(e) =>
                               handleAnswerChange(
                                 question.id,
-                                family.type === "TYPE_2" ? "include" : "talk",
+                                "talk",
                                 e.target.checked
                               )
                             }
                             disabled={isSubmitted}
                           />
                         </td>
+
+                        {family.type === "TYPE_1" && (
+                          <td className="px-4 py-3 text-center">
+                            <Select
+                              value={answer.conscent ?? null}
+                              onChange={(value) =>
+                                handleAnswerChange(
+                                  question.id,
+                                  "conscent",
+                                  value
+                                )
+                              }
+                              disabled={isSubmitted}
+                              allowClear
+                              placeholder="—"
+                              size="small"
+                              style={{ width: 80 }}
+                              options={[
+                                { value: "TLT", label: "TLT" },
+                                { value: "JS", label: "JS" },
+                                { value: "M", label: "M" },
+                              ]}
+                            />
+                          </td>
+                        )}
+
+                        {family.type === "TYPE_2" && (
+                          <>
+                            <td className="px-4 py-3 text-center">
+                              <Checkbox
+                                label=""
+                                checked={answer.include || false}
+                                onChange={(e) =>
+                                  handleAnswerChange(
+                                    question.id,
+                                    "include",
+                                    e.target.checked
+                                  )
+                                }
+                                disabled={isSubmitted}
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <Textarea
+                                label=""
+                                value={answer.other || ""}
+                                onChange={(e) =>
+                                  handleAnswerChange(
+                                    question.id,
+                                    "other",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Noms..."
+                                maxLength={2000}
+                                showCount
+                                disabled={isSubmitted}
+                              />
+                            </td>
+                          </>
+                        )}
 
                         <td className="px-4 py-3">
                           <Textarea

@@ -79,8 +79,8 @@ export const fr = {
     label: "Nom de la famille",
     type: "Type de questions",
     order: "Ordre d'affichage",
-    type1: "Type 1 (Top/Bot/Talk)",
-    type2: "Type 2 (Include/Talk)",
+    type1: "Type 1 (Top/Bot/Talk/Consentement)",
+    type2: "Type 2 (Talk/Include/Autre)",
     confirmDelete:
       "Êtes-vous sûr de vouloir supprimer cette famille de questions ? Toutes les questions associées seront également supprimées.",
   },
@@ -109,7 +109,9 @@ export const fr = {
     top: "Top",
     bot: "Bot",
     talk: "À discuter",
+    conscent: "Consentement",
     include: "Inclure",
+    other: "Autre(s)",
     confirmSubmit:
       "Une fois soumis, vous ne pourrez plus modifier vos réponses. Êtes-vous sûr ?",
     reopen: "Autoriser la modification",

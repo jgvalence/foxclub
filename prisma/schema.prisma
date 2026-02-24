@@ -102,8 +102,14 @@ model VerificationToken {
 // ==============================================================================
 
 enum QuestionType {
-  TYPE_1 // Score (1-4), Top, Bot, Talk, Notes
-  TYPE_2 // Score (1-4), Talk, Include, Notes
+  TYPE_1 // Score (1-4), Top, Bot, Talk, Conscent, Notes
+  TYPE_2 // Score (1-4), Talk, Include, Other, Notes
+}
+
+enum ConscientType {
+  TLT
+  JS
+  M
 }
 
 // Question families group questions by category
@@ -170,12 +176,16 @@ model FormAnswer {
   notes String? @db.Text
 
   // TYPE_1 specific fields
-  top  Boolean? // Only for TYPE_1
-  bot  Boolean? // Only for TYPE_1
-  talk Boolean? // Both types
+  top      Boolean?       // Only for TYPE_1
+  bot      Boolean?       // Only for TYPE_1
+  conscent ConscientType? // Only for TYPE_1
+
+  // Both types
+  talk Boolean?
 
   // TYPE_2 specific fields
   include Boolean? // Only for TYPE_2
+  other   String?  @db.Text // Only for TYPE_2
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
